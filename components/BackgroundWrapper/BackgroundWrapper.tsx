@@ -15,12 +15,10 @@ function BackgroundWrapper({ children }: { children: React.ReactNode }) {
       }}
     >
       {/* Background Layer */}
-      <div className={styles.backgroundLayer}></div>
+      <div className={styles.backgroundLayer}/>
 
       {/* Foreground Content*/}
-      <div className={styles.content}>
-        {children}
-      </div>
+      <div className={styles.content}>{children}</div>
     </Paper>
   );
 }

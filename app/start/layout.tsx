@@ -1,6 +1,7 @@
 import '@mantine/core/styles.css';
-import BackgroundWrapper from '@/components/BackgroundWrapper/BackgroundWrapper';
+
 import { MantineProvider } from '@mantine/core';
+import BackgroundWrapper from '@/components/BackgroundWrapper/BackgroundWrapper';
 import { theme } from '@/theme';
 
 export const metadata = {
