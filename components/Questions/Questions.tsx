@@ -4,25 +4,25 @@ import { useState } from 'react';
 import { Button, Group, Paper, Stepper, Text, Title } from '@mantine/core';
 import classes from './Questions.module.css';
 const genres = [
-  { value: 'action', label: 'Action 🥊' },
-  { value: 'adventure', label: 'Adventure 🗺️' },
-  { value: 'animation', label: 'Animation 🎨' },
-  { value: 'comedy', label: 'Comedy 😂' },
-  { value: 'crime', label: 'Crime 🕵️' },
-  { value: 'documentary', label: 'Documentary 📽️' },
-  { value: 'drama', label: 'Drama 🎭' },
-  { value: 'family', label: 'Family 👨‍👩‍👧‍👦' },
-  { value: 'fantasy', label: 'Fantasy ✨' },
-  { value: 'history', label: 'History 📜' },
-  { value: 'horror', label: 'Horror 👻' },
-  { value: 'music', label: 'Music 🎵' },
-  { value: 'mystery', label: 'Mystery 🔍' },
-  { value: 'romance', label: 'Romance 💑' },
-  { value: 'science-fiction', label: 'Science Fiction 🚀' },
-  { value: 'tv-movie', label: 'TV Movie 📺' },
-  { value: 'thriller', label: 'Thriller 😱' },
-  { value: 'war', label: 'War ⚔️' },
-  { value: 'western', label: 'Western 🤠' },
+  { value: 'action', label: 'Action 🥊', id: '28' },
+  { value: 'adventure', label: 'Adventure 🗺️', id: '12' },
+  { value: 'animation', label: 'Animation 🎨', id: '16' },
+  { value: 'comedy', label: 'Comedy 😂', id: '35' },
+  { value: 'crime', label: 'Crime 🕵️', id: '80'  },
+  { value: 'documentary', label: 'Documentary 📽️', id: '99'  },
+  { value: 'drama', label: 'Drama 🎭', id: '18'  },
+  { value: 'family', label: 'Family 👨‍👩‍👧‍👦', id: '10751'},
+  { value: 'fantasy', label: 'Fantasy ✨', id: '14' },
+  { value: 'history', label: 'History 📜', id: '36' },
+  { value: 'horror', label: 'Horror 👻', id: '27' },
+  { value: 'music', label: 'Music 🎵', id: '10402' },
+  { value: 'mystery', label: 'Mystery 🔍', id: '9648' },
+  { value: 'romance', label: 'Romance 💑', id: '10749' },
+  { value: 'science-fiction', label: 'Science Fiction 🚀', id: '878' },
+  { value: 'tv-movie', label: 'TV Movie 📺', id: '10770' },
+  { value: 'thriller', label: 'Thriller 😱', id: '53' },
+  { value: 'war', label: 'War ⚔️', id: '10752' },
+  { value: 'western', label: 'Western 🤠', id: '37' },
 ];
 
 const languages = [
@@ -36,9 +36,40 @@ function Questions() {
   const nextStep = () => setActive((current) => (current < 3 ? current + 1 : current));
   const prevStep = () => setActive((current) => (current > 0 ? current - 1 : current));
 
+  const default_recommend_params = {
+    include_adult: 'false',
+    include_video: 'false',
+    language: 'en-US',
+    page: '1',
+    sort_by: 'popularity.desc'
+  }
+
   const [selectedGenres, setSelectedGenres] = useState<string[]>([]);
   const [selectedDislikedGenres, setSelectedDislikedGenres] = useState<string[]>([]);
   const [selectedLanguages, setSelectedLanguages] = useState<string[]>([]);
+
+  const recommend = async () => {
+    const selectedGenresIds = selectedGenres.map(
+      value => {
+        const genre = genres.find(genre => genre.value === value);
+        return genre? genre.id : '0';
+      }
+    ).join();
+    const selectedDislikedGenresIds = selectedDislikedGenres.map(
+      value => {
+        const genre = genres.find(genre => genre.value === value);
+        return genre? genre.id : '0';
+      }
+    ).join();
+    const params = {
+      ...default_recommend_params,
+      with_genres: selectedGenresIds,
+      without_genres: selectedDislikedGenresIds,
+    }
+    const queryString = new URLSearchParams(params).toString();
+    const response = await fetch(`/api/discover?${queryString}`);
+    const result = await response.json();
+  }
 
   return (
     <>
