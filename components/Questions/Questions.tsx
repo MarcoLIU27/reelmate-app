@@ -1,7 +1,7 @@
 'use client';
 
 import { useState } from 'react';
-import { Button, Group, Paper, Stepper, Text, Title } from '@mantine/core';
+import { Button, Group, Paper, Stepper, Text, Title, RangeSlider, SegmentedControl } from '@mantine/core';
 import classes from './Questions.module.css';
 const genres = [
   { value: 'action', label: 'Action 🥊' },
@@ -28,17 +28,29 @@ const genres = [
 const languages = [
   { value: 'en', label: 'English' },
   { value: 'zh', label: 'Chinese' },
-  { value: 'jp', label: 'Janpanese' },
+  { value: 'jp', label: 'Japanese' },
+  { value: 'sp', label: 'Spanish' },
+  { value: 'kr', label: 'Korean' },
+  { value: 'fr', label: 'French' },
 ];
+
+const presets = {
+  latest: [2022, 2024],
+  recent: [2019, 2024],
+  modern: [2000, 2024],
+  classic: [1920, 1999],
+}
 
 function Questions() {
   const [active, setActive] = useState(0);
-  const nextStep = () => setActive((current) => (current < 3 ? current + 1 : current));
+  const nextStep = () => setActive((current) => (current < 4 ? current + 1 : current));
   const prevStep = () => setActive((current) => (current > 0 ? current - 1 : current));
 
   const [selectedGenres, setSelectedGenres] = useState<string[]>([]);
   const [selectedDislikedGenres, setSelectedDislikedGenres] = useState<string[]>([]);
   const [selectedLanguages, setSelectedLanguages] = useState<string[]>([]);
+  const [yearRange, setYearRange] = useState<[number, number]>([1920, 2024]);
+  const [voteSelection, setVoteSelection] = useState(true);
 
   return (
     <>
@@ -72,14 +84,17 @@ function Questions() {
               setSelectedLanguages={setSelectedLanguages}
             />
           </Stepper.Step>
-          <Stepper.Step label="Language">
-            Question 4 content: Get full access
+          <Stepper.Step label="Years">
+            <YearsSelector
+              yearRange={yearRange}
+              setYearRange={setYearRange}
+            />
           </Stepper.Step>
-          <Stepper.Step label="Language">
-            Question 5 content: Get full access
-          </Stepper.Step>
-          <Stepper.Step label="Language">
-            Question 6 content: Get full access
+          <Stepper.Step label="Vote">
+            <VoteSelector
+                voteSelection={voteSelection}
+                setVoteSelection={setVoteSelection}
+            />
           </Stepper.Step>
           <Stepper.Completed>
             Completed, click back button to get to previous step
@@ -207,7 +222,7 @@ const LanguagesSelector = ({ selectedLanguages, setSelectedLanguages }: any): an
         Pick languages of the movie you like.
       </Text>
 
-      <Group className={classes.choices}>
+      <Group className={classes.choices} style={{paddingTop: '10vh'}}>
         {languages.map((language) => (
           <Button
             key={language.value}
@@ -224,5 +239,112 @@ const LanguagesSelector = ({ selectedLanguages, setSelectedLanguages }: any): an
     </div>
   );
 };
+
+const YearsSelector = ({ yearRange, setYearRange }: any): any => {
+
+  const applyPreset = (preset: keyof typeof presets) => {
+    setYearRange(presets[preset]);
+  };
+
+  return (
+    <div className={classes.content} style={{ maxWidth: '600px'}}>
+      <Title order={2} ta="center" mb="md">
+        Select your preferred release year range
+      </Title>
+      <Text ta="center" mb="sm" color="dimmed">
+        Use the slider or choose a quick preset.
+      </Text>
+
+      {/* Dual-Range Slider */}
+      <RangeSlider
+        color="pink"
+        size="xl"
+        value={yearRange}
+        onChange={setYearRange}
+        min={1920}
+        max={2024}
+        step={1}
+        marks={[
+          { value: 1920, label: '1920' },
+          { value: 1950, label: '1950' },
+          { value: 1980, label: '1980' },
+          { value: 2000, label: '2000' },
+          { value: 2024, label: '2024' },
+        ]}
+        mt="lg"
+        mb="lg"
+        styles={{
+          markLabel: { fontSize: '1rem' },
+          mark: { display: 'block' },
+        }}
+      />
+      {/* Display selected range */}
+      <Text ta="center" pt="lg" color="pink">
+        Selected Range: {yearRange[0]} - {yearRange[1]}
+      </Text>
+
+      {/* Presets */}
+      <Group pt="lg" style={{ justifyContent: 'center' }}>
+        <Button
+          color="pink"
+          variant="outline"
+          size="md"
+          radius="xl"
+          onClick={() => applyPreset('latest')}
+        >
+          Latest (Past 2 years)
+        </Button>
+        <Button
+          color="pink"
+          variant="outline"
+          size="md"
+          radius="xl"
+          onClick={() => applyPreset('recent')}
+        >
+          Recent (Past 5 years)
+        </Button>
+        <Button
+        color="pink"
+          variant="outline"
+          size="md"
+          radius="xl"
+          onClick={() => applyPreset('modern')}
+        >
+          Modern (2000-present)
+        </Button>
+        <Button
+          color="pink"
+          variant="outline"
+          size="md"
+          radius="xl"
+          onClick={() => applyPreset('classic')}
+        >
+          Classic (Pre-2000)
+        </Button>
+      </Group>
+    </div>
+  );
+}
+
+const VoteSelector = ({ voteSelection, setVoteSelection }: any): any => {
+  return (
+    <div className={classes.content} style={{ maxWidth: '600px', display: 'flex', flexDirection: 'column', justifyContent: 'flex-start' }}>
+      <Title order={2} ta="center" mb="md">
+        Select movies with average vote ≥ 7.0 only?
+      </Title>
+      <SegmentedControl
+        style={{ marginTop: '10vh' }}
+        size="lg"
+        radius="xl"
+        value={voteSelection}
+        onChange={setVoteSelection}
+        data={[
+          { label: 'Yes', value: 'true' },
+          { label: 'No', value: 'false' },
+        ]}
+      />
+    </div>
+  );
+}
 
 export default Questions;

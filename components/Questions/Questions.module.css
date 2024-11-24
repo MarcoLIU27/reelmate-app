@@ -1,10 +1,12 @@
 .content {
+    height: 50vh;
     width: 90%;
     margin: 0 auto;
     padding-top: 5vh;
 
-    @media (max-height: 800px) {
+    @media (max-height: 900px) {
         padding-top: 1.5vh;
+        height: 47vh;
     }
 }
 
