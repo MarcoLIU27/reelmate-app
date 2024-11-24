@@ -1,0 +1,8 @@
+.footer{
+  background: transparent;
+  color: white;
+  position: relative;
+  bottom: -3vh;
+  display: flex;
+  justify-content: space-between
+}

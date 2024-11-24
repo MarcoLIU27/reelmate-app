@@ -35,13 +35,13 @@
 
 .link {
   text-decoration: none;
-  color: #2e3032; /* Dark gray text */
+  color: #ffffff; /* Dark gray text */
   font-size: 24px;
   font-weight: 500;
   transition: color 0.3s ease; /* Smooth hover transition */
 }
 
 .link:hover {
-  color: #6c70e4;
+  color: #2e3032;
   text-decoration: none;
 }
