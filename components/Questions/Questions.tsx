@@ -1,8 +1,10 @@
 'use client';
 
 import { useState } from 'react';
+import { useRouter } from 'next/navigation';
 import { Button, Group, Paper, Stepper, Text, Title, RangeSlider, SegmentedControl } from '@mantine/core';
 import classes from './Questions.module.css';
+
 const genres = [
   { value: 'action', label: 'Action 🥊', id: '28' },
   { value: 'adventure', label: 'Adventure 🗺️', id: '12' },
@@ -42,45 +44,80 @@ const presets = {
 }
 
 function Questions() {
+  const router = useRouter();
   const [active, setActive] = useState(0);
-  const nextStep = () => setActive((current) => (current < 4 ? current + 1 : current));
-  const prevStep = () => setActive((current) => (current > 0 ? current - 1 : current));
+  
+  const nextStep = async () => {
+    if (active === 4) {
+      // If on the last step, call the searchMovies function
+      await searchMovies();
+    } else {
+      setActive((current) => current + 1); // Move to the next step
+    }
+  };
 
-  const default_recommend_params = {
-    include_adult: 'false',
+  const prevStep = () => {
+    if (active === 0) {
+      // If on the first step, navigate to the home page
+      router.push('/start');
+    } else {
+      setActive((current) => current - 1); // Move to the previous step
+    }
+  };
+
+  const [selectedGenres, setSelectedGenres] = useState<string[]>([]);
+  const [selectedDislikedGenres, setSelectedDislikedGenres] = useState<string[]>([]);
+  const [selectedLanguages, setSelectedLanguages] = useState<string[]>([]);
+  const [yearRange, setYearRange] = useState<[number, number]>([1920, 2024]);
+  const [voteSelection, setVoteSelection] = useState<string>('true');
+
+  const default_search_params = {
+    include_adult: 'true',
     include_video: 'false',
     language: 'en-US',
     page: '1',
     sort_by: 'popularity.desc'
   }
 
-  const [selectedGenres, setSelectedGenres] = useState<string[]>([]);
-  const [selectedDislikedGenres, setSelectedDislikedGenres] = useState<string[]>([]);
-  const [selectedLanguages, setSelectedLanguages] = useState<string[]>([]);
-  const [yearRange, setYearRange] = useState<[number, number]>([1920, 2024]);
-  const [voteSelection, setVoteSelection] = useState(true);
-
-  const recommend = async () => {
+  const searchMovies = async () => {
     const selectedGenresIds = selectedGenres.map(
       value => {
         const genre = genres.find(genre => genre.value === value);
         return genre? genre.id : '0';
       }
-    ).join();
+    ).join('|');
     const selectedDislikedGenresIds = selectedDislikedGenres.map(
       value => {
         const genre = genres.find(genre => genre.value === value);
         return genre? genre.id : '0';
       }
-    ).join();
+    ).join(',');
+
+    const today = new Date();
+    const currentYear = today.getFullYear();
+    const releaseDateGte = `${yearRange[0]}-01-01`; // Start of the first year
+    const releaseDateLte =
+      yearRange[1] === currentYear
+        ? today.toISOString().split('T')[0] // Format: YYYY-MM-DD
+        : `${yearRange[1]}-12-31`; // End of the selected year
+  
+    // Determine the vote average threshold
+    const voteAverageGte = voteSelection === 'true' ? '7.0' : '0.0';
+
     const params = {
-      ...default_recommend_params,
+      ...default_search_params,
       with_genres: selectedGenresIds,
       without_genres: selectedDislikedGenresIds,
+      with_original_language: selectedLanguages.join(','),
+      'release_date.gte': releaseDateGte,
+      'release_date.lte': releaseDateLte,
+      'vote_average.gte': voteAverageGte,
     }
     const queryString = new URLSearchParams(params).toString();
+    console.log(queryString)
     const response = await fetch(`/api/discover?${queryString}`);
     const result = await response.json();
+    console.log(result)
   }
 
   return (
