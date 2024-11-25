@@ -1,27 +1,107 @@
-import clientPromise from '@/clients/mongodb';
-import { ObjectId } from 'mongodb';
+import mongoose, { Schema, Document } from 'mongoose';
 
-const dbName = 'reelmatesdb';
-const collectionName = 'party';
-
-export async function createParty(data: any) {
-  const client = await clientPromise;
-  const db = client.db(dbName);
-  const result = await db.collection(collectionName).insertOne(data);
-  return result.insertedId;
+export interface Parties extends Document {
+  createdAt: Date;
+  status: 'collecting' | 'voting' | 'completed';
+  preferences: {
+    genres: string[];
+    excludedGenres: string[];
+    languages: string[];
+    yearRange: {
+      start: string;
+      end: string;
+    };
+    poolSize: number;
+    highVoteOnly: boolean;
+  };
+  moviePool: {
+    movieId: string;
+    status: 'unvoted' | 'watched' | 'shortlisted' | 'skipped';
+  }[];
+  shortlist: {
+    movieId: string;
+    status: 'unvoted' | 'shortlisted' | 'skipped';
+  }[];
+  winner?: string;
+  completedAt?: Date;
 }
 
-export async function updatePartyStatus(partyId: string, status: string) {
-  const client = await clientPromise;
-  const db = client.db(dbName);
-  await db.collection(collectionName).updateOne(
-    { _id: new ObjectId(partyId) },
-    { $set: { status } }
-  );
-}
+// Define the Party schema
+const PartySchema: Schema = new Schema<Parties>({
+  createdAt: {
+    type: Date,
+    default: Date.now,
+  },
+  status: {
+    type: String,
+    enum: ['collecting', 'voting', 'completed'],
+    required: true,
+  },
+  preferences: {
+    genres: {
+      type: [String],
+      required: true,
+    },
+    excludedGenres: {
+      type: [String],
+      default: [],
+    },
+    languages: {
+      type: [String],
+      required: true,
+    },
+    yearRange: {
+      start: {
+        type: String,
+        required: true,
+      },
+      end: {
+        type: String,
+        required: true,
+      },
+    },
+    poolSize: {
+      type: Number,
+      required: true,
+    },
+    highVoteOnly: {
+      type: Boolean,
+      default: false,
+    },
+  },
+  moviePool: [
+    {
+      movieId: {
+        type: String,
+        required: true,
+      },
+      status: {
+        type: String,
+        enum: ['unvoted', 'watched', 'shortlisted', 'skipped'],
+        required: true,
+      },
+    },
+  ],
+  shortlist: [
+    {
+      movieId: {
+        type: String,
+        required: true,
+      },
+      status: {
+        type: String,
+        enum: ['unvoted', 'shortlisted', 'skipped'],
+        required: true,
+      },
+    },
+  ],
+  winner: {
+    type: String,
+  },
+  completedAt: {
+    type: Date,
+  },
+});
 
-export async function getPartyById(partyId: string) {
-  const client = await clientPromise;
-  const db = client.db(dbName);
-  return await db.collection(collectionName).findOne({ _id: new ObjectId(partyId) });
-}
+// Create and export the Party model
+export default mongoose.models.Party || mongoose.model<Parties>('Party', PartySchema);

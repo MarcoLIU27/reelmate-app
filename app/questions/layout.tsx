@@ -11,12 +11,8 @@ export const metadata = {
 
 export default function RootLayout({ children }: { children: any }) {
   return (
-    <html lang="en" suppressHydrationWarning>
-      <body>
-        <BackgroundWrapper>
-          <MantineProvider theme={theme}>{children}</MantineProvider>
-        </BackgroundWrapper>
-      </body>
-    </html>
+    <BackgroundWrapper>
+      {children}
+    </BackgroundWrapper>
   );
 }

@@ -4,21 +4,21 @@ const withBundleAnalyzer = bundleAnalyzer({
   enabled: process.env.ANALYZE === 'true',
 });
 
-export default withBundleAnalyzer({
-  reactStrictMode: false,
+const nextConfig = withBundleAnalyzer({
+  reactStrictMode: true, // Enable React Strict Mode
   eslint: {
-    ignoreDuringBuilds: true,
+    ignoreDuringBuilds: true, // Avoid ESLint errors during builds
   },
   experimental: {
-    optimizePackageImports: ['@mantine/core', '@mantine/hooks'],
+    optimizePackageImports: ['@mantine/core', '@mantine/hooks'], // Optimize Mantine imports
   },
-  async redirects() {
-    return [
-      {
-        source: '/',
-        destination: '/start',
-        permanent: true,
-      },
-    ];
-  },
+  redirects: async () => [
+    {
+      source: '/',
+      destination: '/start',
+      permanent: true, // HTTP 308 Permanent Redirect
+    },
+  ],
 });
+
+export default nextConfig;

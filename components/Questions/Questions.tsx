@@ -100,8 +100,6 @@ function Questions() {
       yearRange[1] === currentYear
         ? today.toISOString().split('T')[0] // Format: YYYY-MM-DD
         : `${yearRange[1]}-12-31`; // End of the selected year
-  
-    // Determine the vote average threshold
     const voteAverageGte = voteSelection === 'true' ? '7.0' : '0.0';
 
     const params = {
@@ -115,9 +113,29 @@ function Questions() {
     }
     const queryString = new URLSearchParams(params).toString();
     console.log(queryString)
-    const response = await fetch(`/api/discover?${queryString}`);
+    const response = await fetch(`/api/search?${queryString}`);
     const result = await response.json();
     console.log(result)
+
+    // Save preferences to database
+    const createPartyBody = JSON.stringify({
+      genres: selectedGenresIds,
+      excludedGenres: selectedDislikedGenresIds,
+      languages: selectedLanguages,
+      yearStart: yearRange[0],
+      yearEnd: yearRange[1],
+      highVoteOnly: voteSelection == 'true',
+    });
+    try {
+      const res = await fetch(`/api/party`, { method: 'POST', body: createPartyBody, });
+      if (!res.ok) {
+        throw new Error('Failed to create party');
+      }
+      const result = await res.json(); // Parse the JSON response
+      console.log('New Party ID:', result.partyId); // Access the partyIdconst 
+    } catch (error) {
+      console.error('Error creating party:', error);
+    }
   }
 
   return (
