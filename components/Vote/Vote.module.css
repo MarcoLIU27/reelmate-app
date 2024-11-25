@@ -1,0 +1,37 @@
+/* Decorative Images - Bottom Left */
+.bottomLeftImage {
+    position: absolute; 
+    width: 25vw;
+    height: auto;
+    bottom: 0;
+    left: 0;
+    border-radius: 0 0 0 2rem;
+    z-index: 1; /* Ensure it appears above the background */
+  
+    @media (max-height: 900px) {
+      width: 22vw;
+    }
+  
+    @media (max-height: 750px) {
+      width: 18vw;
+    }
+  }
+  
+  /* Decorative Images - Bottom Right */
+  .bottomRightImage {
+    position: absolute;
+    width: 24vw;
+    height: auto;
+    bottom: 0;
+    right: 0;
+    border-radius: 0 0 2rem 0;
+    z-index: 1; /* Ensure it appears above the background */
+  
+    @media (max-height: 900px) {
+      width: 22vw;
+    }
+  
+    @media (max-height: 750px) {
+      width: 18vw;
+    }
+  }

@@ -1,4 +1,4 @@
-import TMDBClient from '../../app/clients/TMDBclient';
+import TMDBClient from '../../clients/TMDBclient';
 
 export default async function handler(req: any, res: any){
   try {
