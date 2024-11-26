@@ -1,4 +1,4 @@
-import mongoose, { Schema, Document } from 'mongoose';
+import mongoose, { Document, Schema } from 'mongoose';
 
 export interface Parties extends Document {
   createdAt: Date;
@@ -66,6 +66,7 @@ const PartySchema: Schema = new Schema<Parties>({
     },
     highVoteOnly: {
       type: Boolean,
+      required: true,
       default: false,
     },
   },

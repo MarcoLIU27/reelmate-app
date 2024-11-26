@@ -10,9 +10,5 @@ export const metadata = {
 };
 
 export default function RootLayout({ children }: { children: any }) {
-  return (
-    <BackgroundWrapper>
-      {children}
-    </BackgroundWrapper>
-  );
+  return <BackgroundWrapper>{children}</BackgroundWrapper>;
 }

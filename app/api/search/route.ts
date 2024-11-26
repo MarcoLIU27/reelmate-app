@@ -1,5 +1,5 @@
 import { NextRequest, NextResponse } from 'next/server';
-import TMDBClient from '@/app/clients/TMDBclient'; // Adjust import path if necessary
+import TMDBClient from '@/app/clients/TMDBclient';
 
 export async function GET(req: NextRequest) {
   try {
@@ -41,9 +41,6 @@ export async function GET(req: NextRequest) {
     // Return the response data
     return NextResponse.json(response.data);
   } catch (error: any) {
-    return NextResponse.json(
-      { message: error.message },
-      { status: error.response?.status || 500 }
-    );
+    return NextResponse.json({ message: error.message }, { status: error.response?.status || 500 });
   }
 }

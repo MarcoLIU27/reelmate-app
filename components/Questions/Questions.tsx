@@ -2,7 +2,17 @@
 
 import { useState } from 'react';
 import { useRouter } from 'next/navigation';
-import { Button, Group, Paper, Stepper, Text, Title, RangeSlider, SegmentedControl } from '@mantine/core';
+import {
+  Button,
+  Group,
+  Loader,
+  Paper,
+  RangeSlider,
+  SegmentedControl,
+  Stepper,
+  Text,
+  Title,
+} from '@mantine/core';
 import classes from './Questions.module.css';
 
 const genres = [
@@ -10,10 +20,10 @@ const genres = [
   { value: 'adventure', label: 'Adventure 🗺️', id: '12' },
   { value: 'animation', label: 'Animation 🎨', id: '16' },
   { value: 'comedy', label: 'Comedy 😂', id: '35' },
-  { value: 'crime', label: 'Crime 🕵️', id: '80'  },
-  { value: 'documentary', label: 'Documentary 📽️', id: '99'  },
-  { value: 'drama', label: 'Drama 🎭', id: '18'  },
-  { value: 'family', label: 'Family 👨‍👩‍👧‍👦', id: '10751'},
+  { value: 'crime', label: 'Crime 🕵️', id: '80' },
+  { value: 'documentary', label: 'Documentary 📽️', id: '99' },
+  { value: 'drama', label: 'Drama 🎭', id: '18' },
+  { value: 'family', label: 'Family 👨‍👩‍👧‍👦', id: '10751' },
   { value: 'fantasy', label: 'Fantasy ✨', id: '14' },
   { value: 'history', label: 'History 📜', id: '36' },
   { value: 'horror', label: 'Horror 👻', id: '27' },
@@ -41,12 +51,13 @@ const presets = {
   recent: [2019, 2024],
   modern: [2000, 2024],
   classic: [1920, 1999],
-}
+};
 
 function Questions() {
   const router = useRouter();
   const [active, setActive] = useState(0);
-  
+  const [loading, setLoading] = useState(false); // Add loading state
+
   const nextStep = async () => {
     if (active === 4) {
       // If on the last step, call the searchMovies function
@@ -76,22 +87,22 @@ function Questions() {
     include_video: 'false',
     language: 'en-US',
     page: '1',
-    sort_by: 'popularity.desc'
-  }
+    sort_by: 'popularity.desc',
+  };
 
   const searchMovies = async () => {
-    const selectedGenresIds = selectedGenres.map(
-      value => {
-        const genre = genres.find(genre => genre.value === value);
-        return genre? genre.id : '0';
-      }
-    ).join('|');
-    const selectedDislikedGenresIds = selectedDislikedGenres.map(
-      value => {
-        const genre = genres.find(genre => genre.value === value);
-        return genre? genre.id : '0';
-      }
-    ).join(',');
+    const selectedGenresIds = selectedGenres
+      .map((value) => {
+        const genre = genres.find((genre) => genre.value === value);
+        return genre ? genre.id : '0';
+      })
+      .join('|');
+    const selectedDislikedGenresIds = selectedDislikedGenres
+      .map((value) => {
+        const genre = genres.find((genre) => genre.value === value);
+        return genre ? genre.id : '0';
+      })
+      .join(',');
 
     const today = new Date();
     const currentYear = today.getFullYear();
@@ -102,6 +113,7 @@ function Questions() {
         : `${yearRange[1]}-12-31`; // End of the selected year
     const voteAverageGte = voteSelection === 'true' ? '7.0' : '0.0';
 
+    // Step 1: Search movies by preferences
     const params = {
       ...default_search_params,
       with_genres: selectedGenresIds,
@@ -110,33 +122,74 @@ function Questions() {
       'release_date.gte': releaseDateGte,
       'release_date.lte': releaseDateLte,
       'vote_average.gte': voteAverageGte,
-    }
+    };
     const queryString = new URLSearchParams(params).toString();
-    console.log(queryString)
+    console.log(queryString);
     const response = await fetch(`/api/search?${queryString}`);
     const result = await response.json();
-    console.log(result)
+    console.log(result);
 
-    // Save preferences to database
+    // Step 2: Save preferences and movie pool to database
+    const moviePool = result.results.slice(0, 10).map((movie: any) => ({
+      movieId: movie.id.toString(),
+      status: 'unvoted',
+    }));
+    console.log(moviePool);
+
     const createPartyBody = JSON.stringify({
       genres: selectedGenresIds,
       excludedGenres: selectedDislikedGenresIds,
       languages: selectedLanguages,
       yearStart: yearRange[0],
       yearEnd: yearRange[1],
-      highVoteOnly: voteSelection == 'true',
+      highVoteOnly: voteSelection === 'true',
+      moviePool: moviePool,
     });
+
     try {
-      const res = await fetch(`/api/party`, { method: 'POST', body: createPartyBody, });
+      setLoading(true);
+      // Create a new party with preferences and movie pool
+      const res = await fetch(`/api/party`, { method: 'POST', body: createPartyBody });
       if (!res.ok) {
         throw new Error('Failed to create party');
       }
       const result = await res.json(); // Parse the JSON response
-      console.log('New Party ID:', result.partyId); // Access the partyIdconst 
+      console.log('New Party ID:', result.partyId);
+
+ 
+      // Redirect to the voting page
+      router.push(`/vote/${result.partyId}`);
     } catch (error) {
       console.error('Error creating party:', error);
     }
-  }
+
+    // Cache movie details to database
+    const movieIds = moviePool.map((movie: any) => movie.movieId);
+    const movieDetailsPromises = movieIds.map(async (movieId: string) => {
+      const res = await fetch(`/api/moviedetails/${movieId}`);
+      if (!res.ok) {
+        throw new Error(`Failed to fetch movie ${movieId}`);
+      }
+      const movieDetails = await res.json();
+      await fetch(`/api/movie/${movieId}`, { method: 'PUT', body: JSON.stringify(movieDetails) });
+    });
+    try {
+      await Promise.all(movieDetailsPromises);
+    } catch (error) {
+      console.error('Error caching movie details:', error);
+    } finally {
+      setLoading(false); // Hide loader
+    }
+
+
+    // const movieIds = moviePool.map((movie: any) => movie.movieId);
+    // const movieDetailsBody = JSON.stringify({ movieIds: movieIds });
+    // try {
+    //   const movieDetailsRes = await fetch(`/api/movies`, { method: 'POST', body: movieDetailsBody });
+    // } catch (error) {
+      
+    // }
+  };
 
   return (
     <>
@@ -150,64 +203,81 @@ function Questions() {
           position: 'relative',
         }}
       >
-        <Stepper color="pink" active={active} onStepClick={setActive} allowNextStepsSelect={false} mt="5vh" style={{ width: '80%'}}>
-          <Stepper.Step label="Genres" description="Likes">
-            <GenresSelector
-              selectedGenres={selectedGenres}
-              setSelectedGenres={setSelectedGenres}
-            />
-          </Stepper.Step>
-          <Stepper.Step label="Genres" description="Dislikes">
-            <DislikedGenresSelector
-              selectedDislikedGenres={selectedDislikedGenres}
-              setSelectedDislikedGenres={setSelectedDislikedGenres}
-              selectedGenres={selectedGenres}
-            />
-          </Stepper.Step>
-          <Stepper.Step label="Language">
-            <LanguagesSelector
-              selectedLanguages={selectedLanguages}
-              setSelectedLanguages={setSelectedLanguages}
-            />
-          </Stepper.Step>
-          <Stepper.Step label="Years">
-            <YearsSelector
-              yearRange={yearRange}
-              setYearRange={setYearRange}
-            />
-          </Stepper.Step>
-          <Stepper.Step label="Vote">
-            <VoteSelector
-                voteSelection={voteSelection}
-                setVoteSelection={setVoteSelection}
-            />
-          </Stepper.Step>
-          <Stepper.Completed>
-            Completed, click back button to get to previous step
-          </Stepper.Completed>
-        </Stepper>
-
-        <Group justify="center" mt="xl" gap="2rem">
-          <Button
-            className={classes.button}
-            size="lg"
-            radius="xl"
-            variant="outline"
-            color="pink"
-            onClick={prevStep}
+        {loading ? (
+          <div
+            style={{
+              height: '100%',
+              display: 'flex',
+              justifyContent: 'center',
+              alignItems: 'center',
+            }}
           >
-            Back
-          </Button>
-          <Button
-            className={classes.button}
-            size="lg"
-            radius="xl"
-            variant="gradient"
-            gradient={{ from: 'pink', to: 'yellow', deg: 60 }}
-            onClick={nextStep}>
-            Next
-          </Button>
-        </Group>
+            <Loader color="pink" size="xl" type="dots" />
+          </div>
+        ) : (
+          <>
+            <Stepper
+              color="pink"
+              active={active}
+              onStepClick={setActive}
+              allowNextStepsSelect={false}
+              mt="5vh"
+              style={{ width: '80%' }}
+            >
+              <Stepper.Step label="Genres" description="Likes">
+                <GenresSelector
+                  selectedGenres={selectedGenres}
+                  setSelectedGenres={setSelectedGenres}
+                />
+              </Stepper.Step>
+              <Stepper.Step label="Genres" description="Dislikes">
+                <DislikedGenresSelector
+                  selectedDislikedGenres={selectedDislikedGenres}
+                  setSelectedDislikedGenres={setSelectedDislikedGenres}
+                  selectedGenres={selectedGenres}
+                />
+              </Stepper.Step>
+              <Stepper.Step label="Language">
+                <LanguagesSelector
+                  selectedLanguages={selectedLanguages}
+                  setSelectedLanguages={setSelectedLanguages}
+                />
+              </Stepper.Step>
+              <Stepper.Step label="Years">
+                <YearsSelector yearRange={yearRange} setYearRange={setYearRange} />
+              </Stepper.Step>
+              <Stepper.Step label="Vote">
+                <VoteSelector voteSelection={voteSelection} setVoteSelection={setVoteSelection} />
+              </Stepper.Step>
+              <Stepper.Completed>
+                Completed, click back button to get to previous step
+              </Stepper.Completed>
+            </Stepper>
+
+            <Group justify="center" mt="xl" gap="2rem">
+              <Button
+                className={classes.button}
+                size="lg"
+                radius="xl"
+                variant="outline"
+                color="pink"
+                onClick={prevStep}
+              >
+                Back
+              </Button>
+              <Button
+                className={classes.button}
+                size="lg"
+                radius="xl"
+                variant="gradient"
+                gradient={{ from: 'pink', to: 'yellow', deg: 60 }}
+                onClick={nextStep}
+              >
+                Next
+              </Button>
+            </Group>
+          </>
+        )}
       </Paper>
     </>
   );
@@ -251,7 +321,11 @@ const GenresSelector = ({ selectedGenres, setSelectedGenres }: any): any => {
   );
 };
 
-const DislikedGenresSelector = ({ selectedDislikedGenres, setSelectedDislikedGenres, selectedGenres }: any): any => {
+const DislikedGenresSelector = ({
+  selectedDislikedGenres,
+  setSelectedDislikedGenres,
+  selectedGenres,
+}: any): any => {
   const toggleGenre = (value: string) => {
     if (selectedDislikedGenres.includes(value)) {
       // Remove if already selected
@@ -274,7 +348,7 @@ const DislikedGenresSelector = ({ selectedDislikedGenres, setSelectedDislikedGen
         {genres.map((genre) => (
           <Button
             key={genre.value}
-            variant={ selectedDislikedGenres.includes(genre.value) ? 'filled' : 'outline'}
+            variant={selectedDislikedGenres.includes(genre.value) ? 'filled' : 'outline'}
             color={selectedDislikedGenres.includes(genre.value) ? 'pink' : 'gray'}
             disabled={selectedGenres.includes(genre.value)}
             onClick={() => toggleGenre(genre.value)}
@@ -308,11 +382,11 @@ const LanguagesSelector = ({ selectedLanguages, setSelectedLanguages }: any): an
         Pick languages of the movie you like.
       </Text>
 
-      <Group className={classes.choices} style={{paddingTop: '10vh'}}>
+      <Group className={classes.choices} style={{ paddingTop: '10vh' }}>
         {languages.map((language) => (
           <Button
             key={language.value}
-            variant={ selectedLanguages.includes(language.value) ? 'filled' : 'outline'}
+            variant={selectedLanguages.includes(language.value) ? 'filled' : 'outline'}
             color={selectedLanguages.includes(language.value) ? 'pink' : 'gray'}
             onClick={() => toggleGenre(language.value)}
             radius="xl"
@@ -327,13 +401,12 @@ const LanguagesSelector = ({ selectedLanguages, setSelectedLanguages }: any): an
 };
 
 const YearsSelector = ({ yearRange, setYearRange }: any): any => {
-
   const applyPreset = (preset: keyof typeof presets) => {
     setYearRange(presets[preset]);
   };
 
   return (
-    <div className={classes.content} style={{ maxWidth: '600px'}}>
+    <div className={classes.content} style={{ maxWidth: '600px' }}>
       <Title order={2} ta="center" mb="md">
         Select your preferred release year range
       </Title>
@@ -390,7 +463,7 @@ const YearsSelector = ({ yearRange, setYearRange }: any): any => {
           Recent (Past 5 years)
         </Button>
         <Button
-        color="pink"
+          color="pink"
           variant="outline"
           size="md"
           radius="xl"
@@ -410,11 +483,19 @@ const YearsSelector = ({ yearRange, setYearRange }: any): any => {
       </Group>
     </div>
   );
-}
+};
 
 const VoteSelector = ({ voteSelection, setVoteSelection }: any): any => {
   return (
-    <div className={classes.content} style={{ maxWidth: '600px', display: 'flex', flexDirection: 'column', justifyContent: 'flex-start' }}>
+    <div
+      className={classes.content}
+      style={{
+        maxWidth: '600px',
+        display: 'flex',
+        flexDirection: 'column',
+        justifyContent: 'flex-start',
+      }}
+    >
       <Title order={2} ta="center" mb="md">
         Select movies with average vote ≥ 7.0 only?
       </Title>
@@ -431,6 +512,6 @@ const VoteSelector = ({ voteSelection, setVoteSelection }: any): any => {
       />
     </div>
   );
-}
+};
 
 export default Questions;

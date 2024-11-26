@@ -1,3 +1,25 @@
+.outterContainer {
+  height: 100%;
+  background-repeat: no-repeat;
+  background-size: cover;
+  background-position: center;
+  border-radius: 2rem;
+}
+
+.innerContainer {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  height: 100%;
+  border-radius: 2rem;
+}
+
+.content{
+  /* margin-top: 15vh; */
+  display: flex;
+  width: 70%;
+}
+
 /* Decorative Images - Bottom Left */
 .bottomLeftImage {
     position: absolute; 

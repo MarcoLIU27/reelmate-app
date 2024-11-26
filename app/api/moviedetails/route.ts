@@ -9,10 +9,12 @@ export async function GET(req: NextRequest) {
     const movie_id = searchParams.get('movie_id');
 
     // Make the request to TMDB
-    const response = await TMDBClient.get(`/movie/${movie_id}/recommendations`);
+    const details = await TMDBClient.get(`/movie/${movie_id}`);
+
+    const keywords = await TMDBClient.get(`/movie/${movie_id}/keywords`);
 
     // Return the response data
-    return NextResponse.json(response.data);
+    return NextResponse.json({ details, keywords });
   } catch (error: any) {
     return NextResponse.json({ message: error.message }, { status: error.response?.status || 500 });
   }

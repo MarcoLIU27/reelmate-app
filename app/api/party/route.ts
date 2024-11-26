@@ -1,25 +1,26 @@
 import { NextRequest, NextResponse } from 'next/server';
-import { createParty } from '@/services/partyServices';
 import dbConnect from '@/app/clients/mongodb';
+import { createParty } from '@/services/partyServices';
 
 export async function POST(req: NextRequest) {
-    await dbConnect();
+  await dbConnect();
   try {
     // Parse the request body
     const body = await req.json();
 
     // Validate required parameters
     const requiredFields = [
-        'genres',
-        'excludedGenres',
-        'languages',
-        'yearStart',
-        'yearEnd',
-        'highVoteOnly',
+      'genres',
+      'excludedGenres',
+      'languages',
+      'yearStart',
+      'yearEnd',
+      'highVoteOnly',
+      'moviePool',
     ];
 
     for (const field of requiredFields) {
-      if (!body[field]) {
+      if (body[field] === undefined) {
         return NextResponse.json({ message: `${field} is required` }, { status: 400 });
       }
     }
@@ -39,6 +40,7 @@ export async function POST(req: NextRequest) {
         poolSize: 10,
         highVoteOnly: body.highVoteOnly,
       },
+      moviePool: body.moviePool,
     });
     console.log('New party created with ID:', partyId);
 

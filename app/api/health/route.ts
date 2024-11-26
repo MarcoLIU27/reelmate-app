@@ -3,7 +3,11 @@ import dbConnect from '@/app/clients/mongodb';
 
 export async function GET() {
   try {
-    const readyState = mongoose.connection.readyState;
+    // Ensure the database is connected
+    const connection = await dbConnect();
+
+    // Check the connection's readyState
+    const readyState = connection.connection.readyState; // 0 = disconnected, 1 = connected
 
     if (readyState === 1) {
       return NextResponse.json({ status: 'healthy', db: 'connected' }, { status: 200 });
