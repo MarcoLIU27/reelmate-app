@@ -13,6 +13,7 @@ export interface Movies extends Document {
   runtime: number;
   adult: boolean;
   tagline: string;
+  keywords: string[];
   voteAverage: number;
   voteCount: number;
   popularity: number;
@@ -67,6 +68,10 @@ const MovieSchema: Schema = new Schema<Movies>({
   },
   tagline: {
     type: String,
+  },
+  keywords: {
+    type: [String],
+    default: [],
   },
   voteAverage: {
     type: Number,
