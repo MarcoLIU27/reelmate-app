@@ -5,6 +5,136 @@ import { useRouter } from 'next/navigation';
 import { Badge, Button, Group, Image, Loader, Paper, Text, Title } from '@mantine/core';
 import classes from './Vote.module.css';
 
+const moviePoolStorage = {
+  key: 'moviePool',
+
+  // Initialize moviePool in sessionStorage if not already present
+  initialize() {
+    if (!sessionStorage.getItem(this.key)) {
+      sessionStorage.setItem(this.key, JSON.stringify([]));
+    }
+  },
+
+  // Add a movieId to the moviePool array
+  add(movieId: string) {
+    const moviePool = JSON.parse(sessionStorage.getItem(this.key)!);
+    if (!moviePool.includes(movieId)) {
+      moviePool.push(movieId);
+      sessionStorage.setItem(this.key, JSON.stringify(moviePool));
+    }
+  },
+
+  // Remove a movieId from the moviePool array
+  remove(movieId: string) {
+    let moviePool = JSON.parse(sessionStorage.getItem(this.key)!);
+    moviePool = moviePool.filter((id: string) => id !== movieId);
+    sessionStorage.setItem(this.key, JSON.stringify(moviePool));
+  },
+
+  // Get the length of the moviePool array
+  length() {
+    const moviePool = JSON.parse(sessionStorage.getItem(this.key)!);
+    return moviePool.length;
+  },
+
+  getFirst() {
+    const moviePool = JSON.parse(sessionStorage.getItem(this.key)!);
+    return moviePool[0];
+  },
+
+  removeFirst() {
+    let moviePool = JSON.parse(sessionStorage.getItem(this.key)!);
+    moviePool = moviePool.slice(1);
+    sessionStorage.setItem(this.key, JSON.stringify(moviePool));
+  },
+
+  // Get the entire moviePool array
+  getAll() {
+    return JSON.parse(sessionStorage.getItem(this.key)!);
+  },
+};
+
+const shortlistStorage = {
+  key: 'shortlist',
+
+  initialize() {
+    if (!sessionStorage.getItem(this.key)) {
+      sessionStorage.setItem(this.key, JSON.stringify([]));
+    }
+  },
+
+  add(movieId: string) {
+    const moviePool = JSON.parse(sessionStorage.getItem(this.key)!);
+    if (!moviePool.includes(movieId)) {
+      moviePool.push(movieId);
+      sessionStorage.setItem(this.key, JSON.stringify(moviePool));
+    }
+  },
+
+  remove(movieId: string) {
+    let moviePool = JSON.parse(sessionStorage.getItem(this.key)!);
+    moviePool = moviePool.filter((id: string) => id !== movieId);
+    sessionStorage.setItem(this.key, JSON.stringify(moviePool));
+  },
+
+  length() {
+    const moviePool = JSON.parse(sessionStorage.getItem(this.key)!);
+    return moviePool.length;
+  },
+
+  getFirst() {
+    const moviePool = JSON.parse(sessionStorage.getItem(this.key)!);
+    return moviePool[0];
+  },
+
+  removeFirst() {
+    let moviePool = JSON.parse(sessionStorage.getItem(this.key)!);
+    moviePool = moviePool.slice(1);
+    sessionStorage.setItem(this.key, JSON.stringify(moviePool));
+  },
+
+  getAll() {
+    return JSON.parse(sessionStorage.getItem(this.key)!);
+  },
+
+  set(shortlist: string[]) {
+    sessionStorage.setItem(this.key, JSON.stringify(shortlist));
+  },
+
+  async runTournament(
+    getUserChoice: (pair: [string, string]) => Promise<string>
+  ): Promise<string> {
+    let shortlist = this.getAll();
+  
+    while (shortlist.length > 1) {
+      const nextRound: string[] = [];
+      const unpaired: string | null = shortlist.length % 2 === 1 ? shortlist.pop() : null;
+  
+      for (let i = 0; i < shortlist.length; i += 2) {
+        const pair: [string, string] = [shortlist[i], shortlist[i + 1]];
+  
+        // Get user choice for this pair
+        const winner = await getUserChoice(pair);
+        if (!pair.includes(winner)) {
+          throw new Error(`Invalid choice. Expected one of: ${pair.join(', ')}`);
+        }
+  
+        nextRound.push(winner);
+      }
+  
+      if (unpaired) {
+        nextRound.push(unpaired); // Include the unpaired element
+      }
+  
+      shortlist = nextRound;
+      this.set(shortlist); // Save updated shortlist
+    }
+  
+    return shortlist[0]; // The final remaining element
+  },
+
+};
+
 export function Vote({ id }: { id: string }) {
   const BASE_IMAGE_URL = 'https://image.tmdb.org/t/p';
 
