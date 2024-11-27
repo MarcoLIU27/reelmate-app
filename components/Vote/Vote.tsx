@@ -9,6 +9,7 @@ export function Vote({ id }: { id: string }) {
   const BASE_IMAGE_URL = 'https://image.tmdb.org/t/p';
 
   const [loading, setLoading] = useState(true);
+  const [loadingText, setLoadingText] = useState<String>('Loading');
   const [partyData, setPartyData] = useState<any>(null);
   const [partyDataUpdated, setPartyDataUpdated] = useState(false);
   const [unvotedCount, setUnvotedCount] = useState(0);
@@ -74,10 +75,11 @@ export function Vote({ id }: { id: string }) {
     }
   };
 
-  // Trigger fetchPartyData whenever partyDataUpdated changes from true to false 
+  // Trigger fetchPartyData at first or whenever partyDataUpdated changes from true to false 
   useEffect(() => {
     if (!partyDataUpdated) {
       setLoading(true);
+      setLoadingText("Presenting the next movie...");
       console.log("fetch party data");
       fetchPartyData();
     }
@@ -128,25 +130,25 @@ export function Vote({ id }: { id: string }) {
 
 
 
-  const movie = {
-    title: 'Big Fish',
-    year: 2003,
-    rating: 'PG-13',
-    releaseDate: '12/25/2003',
-    genres: ['Adventure', 'Fantasy', 'Drama'],
-    runtime: '2h 5m',
-    userScore: 78,
-    tagline: 'An adventure as big as life itself!',
-    overview:
-      'Throughout his life Edward Bloom has always been a man of big appetites, enormous passions and tall tales. In his later years, he remains a huge mystery to his son, William. Now, to get to know the real man, Will begins piecing together a true picture of his father from flashbacks of his amazing adventures.',
-    director: 'Tim Burton',
-    writer: 'Daniel Wallace',
-    screenplay: 'John August',
-    streamingPlatform: 'Pluto TV',
-    posterPath: '/tjK063yCgaBAluVU72rZ6PKPH2l.jpg',
-    backdropPath: '/bLqUd0tBvKezDr9MEla7k34i3rp.jpg',
-    dominantColor: [188, 201, 214],
-  };
+  // const movie = {
+  //   title: 'Big Fish',
+  //   year: 2003,
+  //   rating: 'PG-13',
+  //   releaseDate: '12/25/2003',
+  //   genres: ['Adventure', 'Fantasy', 'Drama'],
+  //   runtime: '2h 5m',
+  //   userScore: 78,
+  //   tagline: 'An adventure as big as life itself!',
+  //   overview:
+  //     'Throughout his life Edward Bloom has always been a man of big appetites, enormous passions and tall tales. In his later years, he remains a huge mystery to his son, William. Now, to get to know the real man, Will begins piecing together a true picture of his father from flashbacks of his amazing adventures.',
+  //   director: 'Tim Burton',
+  //   writer: 'Daniel Wallace',
+  //   screenplay: 'John August',
+  //   streamingPlatform: 'Pluto TV',
+  //   posterPath: '/tjK063yCgaBAluVU72rZ6PKPH2l.jpg',
+  //   backdropPath: '/bLqUd0tBvKezDr9MEla7k34i3rp.jpg',
+  //   dominantColor: [188, 201, 214],
+  // };
 
   // const backdropUrl = `${BASE_IMAGE_URL}/w1280${movie.backdropPath}`;
   // const posterUrl = `${BASE_IMAGE_URL}/w780${movie.posterPath}`;
@@ -199,11 +201,13 @@ export function Vote({ id }: { id: string }) {
             style={{
               height: '100%',
               display: 'flex',
+              flexDirection: 'column',
               justifyContent: 'center',
               alignItems: 'center',
             }}
           >
             <Loader color="pink" size="xl" type="dots" />
+            <Text size="xl" >{ loadingText }</Text>
           </div>
         ) : (
         <div className={classes.outterContainer} style={{ backgroundImage: `url(${backdropUrl})` }}>
@@ -223,14 +227,14 @@ export function Vote({ id }: { id: string }) {
                 {/* Right Section - Details */}
                 <div style={{ flex: 1 }}>
                   {/* Title and Metadata */}
-                  <Title order={1} style={{color: 'white'}}>
+                  <Title order={1} fz="4rem" style={{color: 'white'}}>
                     {movieData.title}{' '}
-                    <Text component="span" size="xl" color="white">
-                      ({movieData.year})
+                    <Text component="span" fz="3rem" color="white">
+                      ({movieData.releaseDate?.substr(0, 4)})
                     </Text>
                   </Title>
-                  <Text size="md" color="white" mt="xs">
-                          {movieData.rating} • {movieData.releaseDate} • {movieData.genres.join(', ')} • {movieData.runtime} Pool: {unvotedCount} Shortlist: {shortlistedCount }
+                  <Text fz="1rem" color="white" mt="xs">
+                          {movieData.countries.join(', ')} • {movieData.genres.join(', ')} • {movieData.runtime} min Pool: {unvotedCount} Shortlist: {shortlistedCount }
                   </Text>
 
                   {/* User Score */}
@@ -241,9 +245,9 @@ export function Vote({ id }: { id: string }) {
                       radius="xl"
                       style={{ fontSize: '1rem', fontWeight: 'bold' }}
                     >
-                      {movieData.userScore}%
+                      {movieData.voteAverage * 10}%
                     </Badge>
-                    <Text size="md" fw={500} color="white">
+                    <Text size="lg" fw={500} color="white">
                       User Score
                     </Text>
                   </Group>

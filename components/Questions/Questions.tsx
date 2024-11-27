@@ -1,6 +1,6 @@
 'use client';
 
-import { useState, useEffect } from 'react';
+import { useState } from 'react';
 import { useRouter } from 'next/navigation';
 import {
   Button,
@@ -57,7 +57,8 @@ const presets = {
 function Questions() {
   const router = useRouter();
   const [active, setActive] = useState(0);
-  const [loading, setLoading] = useState(false); // Add loading state
+  const [loading, setLoading] = useState(false);
+  const [loadingText, setLoadingText] = useState<String>('Loading');
 
   const nextStep = async () => {
     if (active === 4) {
@@ -115,6 +116,7 @@ function Questions() {
 
   const searchMovies = async () => {
     setLoading(true);
+    setLoadingText('Saving your preference...');
 
     const selectedGenresIds: string = selectedGenres
       .map((value) => {
@@ -139,6 +141,7 @@ function Questions() {
     const voteAverageGte = voteSelection === 'true' ? '7.0' : '0.0';
 
     // Step 1: Search movies by preferences
+    setLoadingText('Searching by your preference...');
     const params = {
       ...default_search_params,
       with_genres: selectedGenresIds,
@@ -155,6 +158,7 @@ function Questions() {
     console.log(result);
 
     // Step 2: Save preferences and movie pool to database
+    setLoadingText('Creating your movie pool...');
     let partyId: string = '';
     const moviePool = result.results.slice(0, 10).map((movie: any) => ({
       movieId: movie.id.toString(),
@@ -185,12 +189,16 @@ function Questions() {
       console.error('Error creating party:', error);
     }
 
-    // Cache movie details to database
+    // Step 3: Cache movie details to database
+    let cachedMovie: number = 0;
+    setLoadingText('Getting movie details...(0/10)');
     const movieIds = moviePool.map((movie: any) => movie.movieId);
     const movieDetailsPromises = movieIds.map(async (movieId: string) => {
       // For each movieId, first check is movie is already cached in DB
       const cachedRes = await fetch(`/api/movie/tmdb/${movieId}`);
       if (cachedRes.ok) {
+        cachedMovie += 1;
+        setLoadingText(`Getting movie details... (${cachedMovie}/10)`);
         // go to next movieId
         return;
       }
@@ -250,6 +258,8 @@ function Questions() {
       }
       const result = await res.json(); // Parse the JSON response
       console.log('New Movie ID:', result.movieId);
+      cachedMovie += 1;
+      setLoadingText(`Getting movie details... (${cachedMovie}/10)`);
     });
 
     try {
@@ -281,11 +291,13 @@ function Questions() {
             style={{
               height: '100%',
               display: 'flex',
+              flexDirection: 'column',
               justifyContent: 'center',
               alignItems: 'center',
             }}
           >
             <Loader color="pink" size="xl" type="dots" />
+            <Text size="xl" >{ loadingText }</Text>
           </div>
         ) : (
           <>
