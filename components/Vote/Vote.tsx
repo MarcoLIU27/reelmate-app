@@ -20,6 +20,12 @@ export function Vote({ id }: { id: string }) {
   const [backdropUrl, setBackdropUrl] = useState<string>('');
   const [gradient, setGradient] = useState('');
 
+  const getCachedData = (key: string) => {
+    const cached = sessionStorage.getItem(key);
+    console.log("get cached data")
+    return cached ? JSON.parse(cached) : null;
+  };
+
   const addToLike = async () => {
     setPartyDataUpdated(false);
   };
@@ -64,12 +70,18 @@ export function Vote({ id }: { id: string }) {
   const fetchMovieData = async () => {
     try {
       console.log(currentMovieId);
-      const response = await fetch(`/api/movie/tmdb/${currentMovieId}`);
-      if (!response.ok) {
-        throw new Error('Failed to fetch movie data');
+      // Try to get local cache first
+      const cachedData = getCachedData(currentMovieId!);
+      if (cachedData == null) {
+        const response = await fetch(`/api/movie/tmdb/${currentMovieId}`);
+        if (!response.ok) {
+          throw new Error('Failed to fetch movie data');
+        }
+        const data = await response.json();
+        setMovieData(data);
+      } else {
+        setMovieData(cachedData);
       }
-      const data = await response.json();
-      setMovieData(data);
     } catch (error) {
       console.error('Error fetching movie data:', error);
     }
@@ -314,7 +326,7 @@ export function Vote({ id }: { id: string }) {
                 size="lg"
                 radius="xl"
                 variant="outline"
-                color="grey"
+                color="white"
                 onClick={skip}
               >
                 Skip

@@ -5,6 +5,7 @@ import { useRouter } from 'next/navigation';
 import {
   Button,
   Group,
+  JsonInputProps,
   Loader,
   Paper,
   RangeSlider,
@@ -52,6 +53,17 @@ const presets = {
   recent: [2019, 2024],
   modern: [2000, 2024],
   classic: [1920, 1999],
+};
+
+const cacheDataLocally = (key: string, data: any) => {
+  const existingData = sessionStorage.getItem(key);
+  if (existingData) {
+    console.log("Data already exists in cache");
+    return; // Skip writing if already cached
+  }
+  const dataToStore = JSON.stringify(data);
+  sessionStorage.setItem(key, dataToStore);
+  console.log("Data cached");
 };
 
 function Questions() {
@@ -152,10 +164,10 @@ function Questions() {
       'vote_average.gte': voteAverageGte,
     };
     const queryString = new URLSearchParams(params).toString();
-    console.log(queryString);
+    //console.log(queryString);
     const response = await fetch(`/api/search?${queryString}`);
     const result = await response.json();
-    console.log(result);
+    //console.log(result);
 
     // Step 2: Save preferences and movie pool to database
     setLoadingText('Creating your movie pool...');
@@ -164,7 +176,7 @@ function Questions() {
       movieId: movie.id.toString(),
       status: 'unvoted',
     }));
-    console.log(moviePool);
+    //console.log(moviePool);
 
     const createPartyBody = JSON.stringify({
       genres: selectedGenresIds,
@@ -197,6 +209,8 @@ function Questions() {
       // For each movieId, first check is movie is already cached in DB
       const cachedRes = await fetch(`/api/movie/tmdb/${movieId}`);
       if (cachedRes.ok) {
+        const cachedData = await cachedRes.json();
+        cacheDataLocally(movieId, cachedData);
         cachedMovie += 1;
         setLoadingText(`Getting movie details... (${cachedMovie}/10)`);
         // go to next movieId
@@ -208,7 +222,7 @@ function Questions() {
         throw new Error(`Failed to fetch movie ${movieId}`);
       }
       const movieDetails = await movieDetailsRes.json();
-      console.log(movieDetails)
+      //console.log(movieDetails)
 
       // Calculate dominantColor for backdrop image
       const BASE_IMAGE_URL = 'https://image.tmdb.org/t/p';
@@ -220,7 +234,7 @@ function Questions() {
       try {
         dominantColor = await calculateDominantColor(proxiedPosterUrl);
         if (dominantColor) {
-          console.log('Dominant Color:', dominantColor);
+          //console.log('Dominant Color:', dominantColor);
         } else {
           console.error('No dominant color extracted.');
         }
@@ -250,7 +264,9 @@ function Questions() {
         backdropPath: movieDetails.details.backdrop_path,
         dominantColor: dominantColor,
       });
-      console.log(createMovieBody)
+      //console.log(createMovieBody)
+      // Cache to session storage
+      cacheDataLocally(movieId, createMovieBody);
       
       const res = await fetch(`/api/movie`, { method: 'POST', body: createMovieBody });
       if (!res.ok) {

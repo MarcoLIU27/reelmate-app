@@ -104,5 +104,6 @@ const PartySchema: Schema = new Schema<Parties>({
   },
 });
 
-// Create and export the Party model
+PartySchema.index({ _id: 1, 'moviePool.movieId': 1 });
+
 export default mongoose.models.Party || mongoose.model<Parties>('Party', PartySchema);

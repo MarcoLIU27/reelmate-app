@@ -99,5 +99,7 @@ const MovieSchema: Schema = new Schema<Movies>({
   },
 });
 
+MovieSchema.index({ 'tmdbId': 1 });
+
 // Create and export the Movie model
 export default mongoose.models.Movie || mongoose.model<Movies>('Movie', MovieSchema);
