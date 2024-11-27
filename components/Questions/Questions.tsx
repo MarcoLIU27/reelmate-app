@@ -1,6 +1,6 @@
 'use client';
 
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { useRouter } from 'next/navigation';
 import {
   Button,
@@ -14,6 +14,7 @@ import {
   Title,
 } from '@mantine/core';
 import classes from './Questions.module.css';
+import ColorThief from 'colorthief';
 
 const genres = [
   { value: 'action', label: 'Action 🥊', id: '28' },
@@ -90,14 +91,38 @@ function Questions() {
     sort_by: 'popularity.desc',
   };
 
+  const calculateDominantColor = async (imageUrl: string): Promise<number[] | null> => {
+    return new Promise((resolve, reject) => {
+      const img = new Image();
+      img.crossOrigin = 'anonymous'; // Ensure cross-origin permissions
+      img.src = imageUrl;
+  
+      img.onload = () => {
+        try {
+          const colorThief = new ColorThief();
+          const dominantColor = colorThief.getColor(img);
+          resolve(dominantColor);
+        } catch (err) {
+          reject(new Error(`Error extracting dominant color: ${err}`));
+        }
+      };
+  
+      img.onerror = (err) => {
+        reject(new Error(`Error loading image: ${err}`));
+      };
+    });
+  };
+
   const searchMovies = async () => {
-    const selectedGenresIds = selectedGenres
+    setLoading(true);
+
+    const selectedGenresIds: string = selectedGenres
       .map((value) => {
         const genre = genres.find((genre) => genre.value === value);
         return genre ? genre.id : '0';
       })
       .join('|');
-    const selectedDislikedGenresIds = selectedDislikedGenres
+    const selectedDislikedGenresIds: string = selectedDislikedGenres
       .map((value) => {
         const genre = genres.find((genre) => genre.value === value);
         return genre ? genre.id : '0';
@@ -118,7 +143,7 @@ function Questions() {
       ...default_search_params,
       with_genres: selectedGenresIds,
       without_genres: selectedDislikedGenresIds,
-      with_original_language: selectedLanguages.join(','),
+      with_original_language: selectedLanguages.join('|'),
       'release_date.gte': releaseDateGte,
       'release_date.lte': releaseDateLte,
       'vote_average.gte': voteAverageGte,
@@ -130,6 +155,7 @@ function Questions() {
     console.log(result);
 
     // Step 2: Save preferences and movie pool to database
+    let partyId: string = '';
     const moviePool = result.results.slice(0, 10).map((movie: any) => ({
       movieId: movie.id.toString(),
       status: 'unvoted',
@@ -147,18 +173,14 @@ function Questions() {
     });
 
     try {
-      setLoading(true);
       // Create a new party with preferences and movie pool
       const res = await fetch(`/api/party`, { method: 'POST', body: createPartyBody });
       if (!res.ok) {
         throw new Error('Failed to create party');
       }
       const result = await res.json(); // Parse the JSON response
-      console.log('New Party ID:', result.partyId);
-
- 
-      // Redirect to the voting page
-      router.push(`/vote/${result.partyId}`);
+      partyId = result.partyId;
+      console.log('New Party ID:', partyId);
     } catch (error) {
       console.error('Error creating party:', error);
     }
@@ -166,29 +188,80 @@ function Questions() {
     // Cache movie details to database
     const movieIds = moviePool.map((movie: any) => movie.movieId);
     const movieDetailsPromises = movieIds.map(async (movieId: string) => {
-      const res = await fetch(`/api/moviedetails/${movieId}`);
-      if (!res.ok) {
+      // For each movieId, first check is movie is already cached in DB
+      const cachedRes = await fetch(`/api/movie/tmdb/${movieId}`);
+      if (cachedRes.ok) {
+        // go to next movieId
+        return;
+      }
+      // If not cached, fetch movie details
+      const movieDetailsRes = await fetch(`/api/moviedetails/${movieId}`);
+      if (!movieDetailsRes.ok) {
         throw new Error(`Failed to fetch movie ${movieId}`);
       }
-      const movieDetails = await res.json();
-      await fetch(`/api/movie/${movieId}`, { method: 'PUT', body: JSON.stringify(movieDetails) });
+      const movieDetails = await movieDetailsRes.json();
+      console.log(movieDetails)
+
+      // Calculate dominantColor for backdrop image
+      const BASE_IMAGE_URL = 'https://image.tmdb.org/t/p';
+      const posterUrl = `${BASE_IMAGE_URL}/w780${movieDetails.details.poster_path}`;
+      const proxiedPosterUrl = `/api/proxy?url=${encodeURIComponent(posterUrl)}`;
+    
+      // Generate Gradient Overlay for Backdrop
+      let dominantColor: number[] | null = null;
+      try {
+        dominantColor = await calculateDominantColor(proxiedPosterUrl);
+        if (dominantColor) {
+          console.log('Dominant Color:', dominantColor);
+        } else {
+          console.error('No dominant color extracted.');
+        }
+      } catch (error) {
+        console.error('Error in dominant color processing:', error);
+        throw error; // Re-throw the error for higher-level handling
+      }
+      
+      // Save movie details to database
+      const createMovieBody = JSON.stringify({
+        tmdbId: movieDetails.details.id.toString(),
+        title: movieDetails.details.title,
+        originalTitle: movieDetails.details.original_title,
+        genres: movieDetails.details.genres.map((genre: any) => genre.name),
+        language: movieDetails.details.original_language,
+        countries: movieDetails.details.origin_country,
+        overview: movieDetails.details.overview,
+        releaseDate: movieDetails.details.release_date,
+        runtime: movieDetails.details.runtime,
+        adult: movieDetails.details.adult,
+        tagline: movieDetails.details.tagline,
+        keywords: movieDetails.keywords.keywords.map((keyword: any) => keyword.name),
+        voteAverage: movieDetails.details.vote_average,
+        voteCount: movieDetails.details.vote_count,
+        popularity: movieDetails.details.popularity,
+        posterPath: movieDetails.details.poster_path,
+        backdropPath: movieDetails.details.backdrop_path,
+        dominantColor: dominantColor,
+      });
+      console.log(createMovieBody)
+      
+      const res = await fetch(`/api/movie`, { method: 'POST', body: createMovieBody });
+      if (!res.ok) {
+        throw new Error(`Failed to save movie ${movieId}`);
+      }
+      const result = await res.json(); // Parse the JSON response
+      console.log('New Movie ID:', result.movieId);
     });
+
     try {
       await Promise.all(movieDetailsPromises);
     } catch (error) {
       console.error('Error caching movie details:', error);
     } finally {
-      setLoading(false); // Hide loader
+      // Redirect to the voting page
+      router.push(`/vote/${partyId}`);
+      //setLoading(false); // Hide loader
     }
 
-
-    // const movieIds = moviePool.map((movie: any) => movie.movieId);
-    // const movieDetailsBody = JSON.stringify({ movieIds: movieIds });
-    // try {
-    //   const movieDetailsRes = await fetch(`/api/movies`, { method: 'POST', body: movieDetailsBody });
-    // } catch (error) {
-      
-    // }
   };
 
   return (

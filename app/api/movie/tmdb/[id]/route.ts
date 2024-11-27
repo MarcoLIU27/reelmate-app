@@ -1,8 +1,7 @@
 import { NextRequest, NextResponse } from 'next/server';
 import dbConnect from '@/app/clients/mongodb';
-import { getMovieByID } from '@/services/movieServices';
+import { getMovieByTMDBId } from '@/services/movieServices';
 
-// Movie endpoints: read, update, delete with ReelMates DB Movie Collection
 
 export async function GET(req: NextRequest, props: { params: Promise<{ id: string }> }) {
   const params = await props.params;
@@ -11,8 +10,8 @@ export async function GET(req: NextRequest, props: { params: Promise<{ id: strin
   const { id } = params;
 
   try {
-    // Fetch the movie by its ID from MongoDB
-    const movie = await getMovieByID(id);
+    // Fetch the movie by TMDB ID
+    const movie = await getMovieByTMDBId(id);
 
     if (!movie) {
       return NextResponse.json({ message: 'Movie not found' }, { status: 404 });

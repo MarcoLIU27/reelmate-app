@@ -2,7 +2,8 @@ import { NextRequest, NextResponse } from 'next/server';
 import TMDBClient from '@/app/clients/TMDBclient';
 
 // Fetch movie details and keywords from TMDB
-export async function GET(req: NextRequest, { params }: { params: { id: string } }) {
+export async function GET(req: NextRequest, props: { params: Promise<{ id: string }> }) {
+  const params = await props.params;
   const { id } = params; // Extract the movie ID from the parameters
 
   try {

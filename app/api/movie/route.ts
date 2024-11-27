@@ -12,7 +12,7 @@ export async function POST(req: NextRequest) {
 
     // Validate required parameters
     const requiredFields = [
-      'tmbdId',
+      'tmdbId',
       'title',
       'originalTitle',
       'genres',

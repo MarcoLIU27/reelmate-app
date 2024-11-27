@@ -1,5 +1,6 @@
 .outterContainer {
   height: 100%;
+  width: 100%;
   background-repeat: no-repeat;
   background-size: cover;
   background-position: center;
@@ -8,16 +9,36 @@
 
 .innerContainer {
   display: flex;
+  flex-direction: column;
   align-items: center;
   justify-content: center;
   height: 100%;
   border-radius: 2rem;
 }
 
+.glassEffect {
+  height: 100%;
+  border-radius:2rem;
+  background: rgba(255, 255, 255, 0.2); /* Semi-transparent white background */
+  backdrop-filter: blur(10px); /* Apply the frosted glass effect */
+}
+
 .content{
   /* margin-top: 15vh; */
   display: flex;
   width: 70%;
+}
+
+.button {
+  transition: transform 0.2s ease;
+  box-shadow: 0.2s ease;
+  margin-top: 4vh;
+  width: 250px;
+  height: 60px;
+
+  @media (max-height: 800px) {
+      margin-top: 1.5vh;
+  }
 }
 
 /* Decorative Images - Bottom Left */

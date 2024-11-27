@@ -1,7 +1,6 @@
 import mongoose, { Schema, Document, Model } from 'mongoose';
 
 export interface Movies extends Document {
-  _id: string;
   tmdbId: string; // TMDB movie ID
   title: string;
   originalTitle: string;
@@ -25,10 +24,6 @@ export interface Movies extends Document {
 }
 
 const MovieSchema: Schema = new Schema<Movies>({
-  _id: {
-    type: String,
-    required: true,
-  },
   tmdbId: {
     type: String,
     required: true,
