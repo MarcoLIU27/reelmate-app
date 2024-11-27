@@ -16,6 +16,8 @@ import {
   Title,
 } from '@mantine/core';
 import classes from './Questions.module.css';
+import moviePoolStorage from '@/utils/moviePoolStorage';
+import shortlistStorage from '@/utils/shortlistStorage';
 
 const genres = [
   { value: 'action', label: 'Action 🥊', id: '28' },
@@ -384,10 +386,13 @@ function Questions() {
     }
 
     // Step 3: Cache movie details to database
+    moviePoolStorage.initialize(); // Init session storage of movie pool and shortlist (only once, make sure clear cache data before voting)
+    shortlistStorage.initialize();
     let cachedMovie: number = 0;
     setLoadingText('Getting movie details...(0/10)');
     const movieIds = moviePool.map((movie: any) => movie.movieId);
     const movieDetailsPromises = movieIds.map(async (movieId: string) => {
+      moviePoolStorage.add(movieId);
       // Fetch movie details
       const movieDetailsRes = await fetch(`/api/moviedetails/${movieId}`);
       if (!movieDetailsRes.ok) {

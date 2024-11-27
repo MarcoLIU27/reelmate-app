@@ -4,136 +4,8 @@ import { useEffect, useState } from 'react';
 import { useRouter } from 'next/navigation';
 import { Badge, Button, Group, Image, Loader, Paper, Text, Title } from '@mantine/core';
 import classes from './Vote.module.css';
-
-const moviePoolStorage = {
-  key: 'moviePool',
-
-  // Initialize moviePool in sessionStorage if not already present
-  initialize() {
-    if (!sessionStorage.getItem(this.key)) {
-      sessionStorage.setItem(this.key, JSON.stringify([]));
-    }
-  },
-
-  // Add a movieId to the moviePool array
-  add(movieId: string) {
-    const moviePool = JSON.parse(sessionStorage.getItem(this.key)!);
-    if (!moviePool.includes(movieId)) {
-      moviePool.push(movieId);
-      sessionStorage.setItem(this.key, JSON.stringify(moviePool));
-    }
-  },
-
-  // Remove a movieId from the moviePool array
-  remove(movieId: string) {
-    let moviePool = JSON.parse(sessionStorage.getItem(this.key)!);
-    moviePool = moviePool.filter((id: string) => id !== movieId);
-    sessionStorage.setItem(this.key, JSON.stringify(moviePool));
-  },
-
-  // Get the length of the moviePool array
-  length() {
-    const moviePool = JSON.parse(sessionStorage.getItem(this.key)!);
-    return moviePool.length;
-  },
-
-  getFirst() {
-    const moviePool = JSON.parse(sessionStorage.getItem(this.key)!);
-    return moviePool[0];
-  },
-
-  removeFirst() {
-    let moviePool = JSON.parse(sessionStorage.getItem(this.key)!);
-    moviePool = moviePool.slice(1);
-    sessionStorage.setItem(this.key, JSON.stringify(moviePool));
-  },
-
-  // Get the entire moviePool array
-  getAll() {
-    return JSON.parse(sessionStorage.getItem(this.key)!);
-  },
-};
-
-const shortlistStorage = {
-  key: 'shortlist',
-
-  initialize() {
-    if (!sessionStorage.getItem(this.key)) {
-      sessionStorage.setItem(this.key, JSON.stringify([]));
-    }
-  },
-
-  add(movieId: string) {
-    const moviePool = JSON.parse(sessionStorage.getItem(this.key)!);
-    if (!moviePool.includes(movieId)) {
-      moviePool.push(movieId);
-      sessionStorage.setItem(this.key, JSON.stringify(moviePool));
-    }
-  },
-
-  remove(movieId: string) {
-    let moviePool = JSON.parse(sessionStorage.getItem(this.key)!);
-    moviePool = moviePool.filter((id: string) => id !== movieId);
-    sessionStorage.setItem(this.key, JSON.stringify(moviePool));
-  },
-
-  length() {
-    const moviePool = JSON.parse(sessionStorage.getItem(this.key)!);
-    return moviePool.length;
-  },
-
-  getFirst() {
-    const moviePool = JSON.parse(sessionStorage.getItem(this.key)!);
-    return moviePool[0];
-  },
-
-  removeFirst() {
-    let moviePool = JSON.parse(sessionStorage.getItem(this.key)!);
-    moviePool = moviePool.slice(1);
-    sessionStorage.setItem(this.key, JSON.stringify(moviePool));
-  },
-
-  getAll() {
-    return JSON.parse(sessionStorage.getItem(this.key)!);
-  },
-
-  set(shortlist: string[]) {
-    sessionStorage.setItem(this.key, JSON.stringify(shortlist));
-  },
-
-  async runTournament(
-    getUserChoice: (pair: [string, string]) => Promise<string>
-  ): Promise<string> {
-    let shortlist = this.getAll();
-  
-    while (shortlist.length > 1) {
-      const nextRound: string[] = [];
-      const unpaired: string | null = shortlist.length % 2 === 1 ? shortlist.pop() : null;
-  
-      for (let i = 0; i < shortlist.length; i += 2) {
-        const pair: [string, string] = [shortlist[i], shortlist[i + 1]];
-  
-        // Get user choice for this pair
-        const winner = await getUserChoice(pair);
-        if (!pair.includes(winner)) {
-          throw new Error(`Invalid choice. Expected one of: ${pair.join(', ')}`);
-        }
-  
-        nextRound.push(winner);
-      }
-  
-      if (unpaired) {
-        nextRound.push(unpaired); // Include the unpaired element
-      }
-  
-      shortlist = nextRound;
-      this.set(shortlist); // Save updated shortlist
-    }
-  
-    return shortlist[0]; // The final remaining element
-  },
-
-};
+import moviePoolStorage from '@/utils/moviePoolStorage';
+import shortlistStorage from '@/utils/shortlistStorage';
 
 export function Vote({ id }: { id: string }) {
   const BASE_IMAGE_URL = 'https://image.tmdb.org/t/p';
@@ -220,6 +92,27 @@ export function Vote({ id }: { id: string }) {
     }
   };
 
+  const addToLikeLocal = () => {
+    // Remove from local pool, add recommended id to pool
+    moviePoolStorage.remove(currentMovieId!);
+    setPartyDataUpdated(false);
+  };
+
+  const addToShortlistLocal = () => {
+    // Remove from local pool, and add id to shortlist
+    moviePoolStorage.remove(currentMovieId!);
+    shortlistStorage.add(currentMovieId!);
+    console.log(moviePoolStorage.getAll());
+    console.log(shortlistStorage.getAll());
+    setPartyDataUpdated(false);
+  };
+
+  const skipLocal = () => {
+    // Remove from local pool
+    moviePoolStorage.remove(currentMovieId!);
+    setPartyDataUpdated(false);
+  };
+
   // Fetch Party Data Function
   const fetchPartyData = async () => {
     try {
@@ -228,7 +121,6 @@ export function Vote({ id }: { id: string }) {
         throw new Error('Failed to fetch party data');
       }
       const data = await response.json();
-      //console.log(data);
       setPartyData(data);
     } catch (error) {
       console.error('Error fetching party data:', error);
@@ -255,26 +147,32 @@ export function Vote({ id }: { id: string }) {
     }
   };
 
-  // Trigger fetchPartyData at first or whenever partyDataUpdated changes from true to false
+  // Trigger fetchPartyData at first loading or whenever partyDataUpdated changes from true to false
   useEffect(() => {
+    console.log("here")
     if (!partyDataUpdated) {
       setLoading(true);
       setLoadingText('Presenting the next movie...');
-      console.log('fetch party data');
-      fetchPartyData();
+      console.log('Fetching party data ...');
+      // fetchPartyData();
+      // Get from Session Storage:
+      console.log(moviePoolStorage.getAll());
+      console.log(shortlistStorage.getAll());
+      setUnvotedCount(moviePoolStorage.getLength());
+      setShortlistedCount(shortlistStorage.getLength());
+      setCurrentMovieId(moviePoolStorage.getFirst());
+      setPartyDataUpdated(true);
     }
   }, [partyDataUpdated]);
 
-  useEffect(() => {
-    if (partyData) {
-      // Only run when partyData is not null
-      //console.log(partyData);
-      setUnvotedCount(partyData.totalUnvoted);
-      setShortlistedCount(partyData.totalShortlisted);
-      setCurrentMovieId(partyData.firstUnvotedMovieId);
-      setPartyDataUpdated(true);
-    }
-  }, [partyData]);
+  // useEffect(() => {
+  //   if (partyData) {
+  //     setUnvotedCount(partyData.totalUnvoted);
+  //     setShortlistedCount(partyData.totalShortlisted);
+  //     setCurrentMovieId(partyData.firstUnvotedMovieId);
+  //     setPartyDataUpdated(true);
+  //   }
+  // }, [partyData]);
 
   useEffect(() => {
     if (currentMovieId) {
@@ -500,7 +398,7 @@ export function Vote({ id }: { id: string }) {
                     radius="xl"
                     variant="gradient"
                     gradient={{ from: 'pink', to: 'yellow', deg: 60 }}
-                    onClick={addToLike}
+                    onClick={addToLikeLocal}
                   >
                     Watched & Like
                   </Button>
@@ -510,7 +408,7 @@ export function Vote({ id }: { id: string }) {
                     radius="xl"
                     variant="gradient"
                     gradient={{ from: 'cyan', to: 'green', deg: 60 }}
-                    onClick={addToShortlist}
+                    onClick={addToShortlistLocal}
                   >
                     Add to Shortlist
                   </Button>
@@ -520,7 +418,7 @@ export function Vote({ id }: { id: string }) {
                     radius="xl"
                     variant="gradient"
                     gradient={{ from: 'grey', to: 'dimmed', deg: 60 }}
-                    onClick={skip}
+                    onClick={skipLocal}
                   >
                     Skip
                   </Button>
