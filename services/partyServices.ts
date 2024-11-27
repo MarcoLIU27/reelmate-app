@@ -14,15 +14,35 @@ export async function getPartyByID(id: string) {
 export async function updateMovieStatusInParty(
   partyId: string,
   movieId: string,
-  newStatus: string
+  newStatus: 'unvoted' | 'liked' | 'shortlisted' | 'skipped'
 ) {
   try {
-    // Find the party and update the status of the movie in moviePool
+    // Construct the update query
+    const updateQuery: any = {
+      $set: { 'moviePool.$.status': newStatus }
+    };
+
+    // Add to shortlist if status is 'shortlisted'
+    if (newStatus === 'shortlisted') {
+      updateQuery.$addToSet = { shortlist: movieId };
+    }
+
+    // Perform the update
     const updatedParty = await Party.findOneAndUpdate(
-      { _id: partyId, 'moviePool.movieId': movieId },
-      { $set: { 'moviePool.$.status': newStatus } }, // `$` is used to target the specific array element
-      { new: true } // Return the updated document
+      { 
+        _id: partyId, 
+        'moviePool.movieId': movieId 
+      },
+      updateQuery,
+      { 
+        new: true,  // Return the updated document
+        runValidators: true  // Run model validations
+      }
     );
+
+    if (!updatedParty) {
+      throw new Error(`No party found with ID ${partyId} and movie ID ${movieId}`);
+    }
 
     return updatedParty;
   } catch (error) {

@@ -1,140 +1,76 @@
-.title {
-  color: light-dark(var(--mantine-color-black), var(--mantine-color-white));
-  font-size: 6rem;
-  font-weight: 600;
-  letter-spacing: rem(-2px);
+.outterContainer {
+  height: 100%;
+  width: 100%;
+  background-repeat: no-repeat;
+  background-size: cover;
+  background-position: center;
+  border-radius: inherit;
+}
 
-  @media (min-width: 1900px) {
-    font-size: 8rem;
-  }
+.glassEffect {
+  height: 100%;
+  width: 100%;
+  border-radius: inherit;
+  background: rgba(255, 255, 255, 0.2); /* Semi-transparent white background */
+  backdrop-filter: blur(10px); /* Apply the frosted glass effect */
+}
 
-  @media (max-width: $mantine-breakpoint-xl) {
-    font-size: 5rem;
-  }
+.innerContainer {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  height: 100%;
+  width: 100%;
+  border-radius: inherit;
+}
 
-  @media (max-width: $mantine-breakpoint-lg) {
-    font-size: 4rem;
-  }
+.content{
+  display: flex;
+  width: 70%;
+  align-items: start;
+  height: 70%;
+}
 
-  @media (max-width: $mantine-breakpoint-md) {
+.poster{
+  width: 70%;
+  min-width: 180px;
+  margin-top: 5vh;
+}
+
+.details{
+  padding-left: 2rem;
+  max-height: 50%;
+  max-width: 55%;
+  margin-top: 5vh;
+}
+
+.title{
+  @media (min-width: 1800px) {
     font-size: 3rem;
   }
 }
 
-.subtitle {
-  color: light-dark(var(--mantine-color-black), var(--mantine-color-white));
-  font-size: 3rem;
-  font-weight: 100;
-  letter-spacing: rem(-2px);
-
-  @media (min-width: 1900px) {
-    font-size: 3.5rem;
-  }
-
-  @media (max-width: $mantine-breakpoint-xl) {
-    font-size: 2.5rem;
-  }
-
-  @media (max-width: $mantine-breakpoint-lg) {
-    font-size: 2rem;
-  }
-
-  @media (max-width: $mantine-breakpoint-md) {
-    font-size: 1.5rem;
-  }
-}
-
-.grid {
-  min-width: 80%;
-  max-width: 85%;
-  margin-top: 8vh;
-  
-  @media (max-height: 1000px) {
-    margin-top: 6vh;
-  }
-
-  @media (max-height: 950px) {
-    margin-top: 4vh;
-  }
-}
-
-.steplist {
-  padding-top: 5vh;
-}
-
-.steptext {
-  font-size: 1.5rem;
-
-  @media (min-width: 2000px) {
-    font-size: 2.125rem;
-  }
-
-  @media (max-height: 950px) {
-    font-size: 1.25rem;
-  }
+.moreButton {
+  transition: transform 0.2s ease;
+  box-shadow: 0.2s ease;
+  width: 60px;
+  height: 60px;
+  min-width: 200px;
 
   @media (max-height: 800px) {
-    font-size: 1.15rem;
+      margin-top: 1.5vh;
   }
-
 }
 
 .button {
   transition: transform 0.2s ease;
   box-shadow: 0.2s ease;
-  margin-top: 8vh;
-  width: 300px;
+  width: 250px;
+  height: 60px;
+  min-width: 200px;
 
-  @media (max-height: 750px) {
-    margin-top: 6vh;
-  }
-
-  @media (min-width: 2000px) {
-    width: 400px;
-    height: 75px;
+  @media (max-height: 800px) {
+      margin-top: 1.5vh;
   }
 }
-
-.button:hover {
-  transform: scale(1.05); /* Slightly enlarges the button */
-  box-shadow: 0 4px 15px rgba(0, 0, 0, 0.2); /* Adds a shadow */
-}
-
-/* Decorative Images - Bottom Left */
-.bottomLeftImage {
-  position: absolute; 
-  width: 25vw;
-  height: auto;
-  bottom: 0;
-  left: 0;
-  border-radius: 0 0 0 2rem;
-  z-index: 1; /* Ensure it appears above the background */
-
-  @media (max-height: 900px) {
-    width: 22vw;
-  }
-
-  @media (max-height: 750px) {
-    width: 18vw;
-  }
-}
-
-/* Decorative Images - Bottom Right */
-.bottomRightImage {
-  position: absolute;
-  width: 24vw;
-  height: auto;
-  bottom: 0;
-  right: 0;
-  border-radius: 0 0 2rem 0;
-  z-index: 1; /* Ensure it appears above the background */
-
-  @media (max-height: 900px) {
-    width: 22vw;
-  }
-
-  @media (max-height: 750px) {
-    width: 18vw;
-  }
-}
-

@@ -60,8 +60,6 @@ export async function POST(req: NextRequest) {
       dominantColor: body.dominantColor || [],
       createdAt: new Date(),
       expiresAt: body.expiresAt || new Date(Date.now() + 3 * 24 * 60 * 60 * 1000), // Default expiry: 3 days
-   
-      
     });
     console.log('New movie created with ID:', movieId);
 

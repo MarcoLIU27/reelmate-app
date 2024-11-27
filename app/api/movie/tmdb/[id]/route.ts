@@ -2,7 +2,6 @@ import { NextRequest, NextResponse } from 'next/server';
 import dbConnect from '@/app/clients/mongodb';
 import { getMovieByTMDBId } from '@/services/movieServices';
 
-
 export async function GET(req: NextRequest, props: { params: Promise<{ id: string }> }) {
   const params = await props.params;
   await dbConnect();

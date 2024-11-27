@@ -4,10 +4,7 @@ export async function GET(req: NextRequest) {
   const url = req.nextUrl.searchParams.get('url'); // Get the original image URL from query params
 
   if (!url) {
-    return NextResponse.json(
-      { error: 'URL is required' },
-      { status: 400 }
-    );
+    return NextResponse.json({ error: 'URL is required' }, { status: 400 });
   }
 
   try {
@@ -33,9 +30,6 @@ export async function GET(req: NextRequest) {
       },
     });
   } catch (error: any) {
-    return NextResponse.json(
-      { error: error.message },
-      { status: 500 }
-    );
+    return NextResponse.json({ error: error.message }, { status: 500 });
   }
 }

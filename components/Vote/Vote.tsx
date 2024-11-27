@@ -1,37 +1,72 @@
 'use client';
+
 import { useEffect, useState } from 'react';
-import {  } from '@tabler/icons-react';
-import { Badge, Button, Group, Image, Paper, Text, Title, Loader } from '@mantine/core';
+import { useRouter } from 'next/navigation';
+import { Badge, Button, Group, Image, Loader, Paper, Text, Title } from '@mantine/core';
 import classes from './Vote.module.css';
 
 export function Vote({ id }: { id: string }) {
-
   const BASE_IMAGE_URL = 'https://image.tmdb.org/t/p';
 
   const [loading, setLoading] = useState(true);
   const [loadingText, setLoadingText] = useState<String>('Loading');
   const [partyData, setPartyData] = useState<any>(null);
   const [partyDataUpdated, setPartyDataUpdated] = useState(false);
-  const [unvotedCount, setUnvotedCount] = useState(0);
-  const [shortlistedCount, setShortlistedCount] = useState(0);
+  const [unvotedCount, setUnvotedCount] = useState(-1);
+  const [shortlistedCount, setShortlistedCount] = useState(-1);
   const [currentMovieId, setCurrentMovieId] = useState<string | null>(null);
   const [movieData, setMovieData] = useState<any>(null);
   const [posterUrl, setPosterUrl] = useState<string>('');
   const [backdropUrl, setBackdropUrl] = useState<string>('');
   const [gradient, setGradient] = useState('');
+  const router = useRouter();
 
   const getCachedData = (key: string) => {
     const cached = sessionStorage.getItem(key);
-    console.log("get cached data")
+    console.log('get cached data');
     return cached ? JSON.parse(cached) : null;
   };
 
   const addToLike = async () => {
     setPartyDataUpdated(false);
+    // change unvoted to skip
+    try {
+      const modifyPoolStatusBody = JSON.stringify({
+        movieId: currentMovieId,
+        status: 'liked',
+      });
+      const response = await fetch(`/api/party/${id}`, {
+        method: 'PUT',
+        body: modifyPoolStatusBody,
+      });
+      if (!response.ok) {
+        throw new Error('Failed to modify party data');
+      }
+      const data = await response.json();
+    } catch (error) {
+      console.error('Error modify party data:', error);
+    }
   };
 
-  const addToShortlist = () => {
+  const addToShortlist = async () => {
     setPartyDataUpdated(false);
+    // change unvoted to shortlisted, and add id to shortlist
+    try {
+      const modifyPoolStatusBody = JSON.stringify({
+        movieId: currentMovieId,
+        status: 'shortlisted',
+      });
+      const response = await fetch(`/api/party/${id}`, {
+        method: 'PUT',
+        body: modifyPoolStatusBody,
+      });
+      if (!response.ok) {
+        throw new Error('Failed to modify party data');
+      }
+      const data = await response.json();
+    } catch (error) {
+      console.error('Error modify party data:', error);
+    }
   };
 
   const skip = async () => {
@@ -42,7 +77,10 @@ export function Vote({ id }: { id: string }) {
         movieId: currentMovieId,
         status: 'skipped',
       });
-      const response = await fetch(`/api/party/${id}`, { method: 'PUT', body: modifyPoolStatusBody });
+      const response = await fetch(`/api/party/${id}`, {
+        method: 'PUT',
+        body: modifyPoolStatusBody,
+      });
       if (!response.ok) {
         throw new Error('Failed to modify party data');
       }
@@ -51,7 +89,7 @@ export function Vote({ id }: { id: string }) {
       console.error('Error modify party data:', error);
     }
   };
-  
+
   // Fetch Party Data Function
   const fetchPartyData = async () => {
     try {
@@ -87,18 +125,19 @@ export function Vote({ id }: { id: string }) {
     }
   };
 
-  // Trigger fetchPartyData at first or whenever partyDataUpdated changes from true to false 
+  // Trigger fetchPartyData at first or whenever partyDataUpdated changes from true to false
   useEffect(() => {
     if (!partyDataUpdated) {
       setLoading(true);
-      setLoadingText("Presenting the next movie...");
-      console.log("fetch party data");
+      setLoadingText('Presenting the next movie...');
+      console.log('fetch party data');
       fetchPartyData();
     }
   }, [partyDataUpdated]);
 
   useEffect(() => {
-    if (partyData) { // Only run when partyData is not null
+    if (partyData) {
+      // Only run when partyData is not null
       //console.log(partyData);
       setUnvotedCount(partyData.totalUnvoted);
       setShortlistedCount(partyData.totalShortlisted);
@@ -106,20 +145,25 @@ export function Vote({ id }: { id: string }) {
       setPartyDataUpdated(true);
     }
   }, [partyData]);
-  
+
   useEffect(() => {
     if (currentMovieId) {
       fetchMovieData();
     }
   }, [currentMovieId]);
 
+  useEffect(() => {
+    if (unvotedCount === 0) {
+      router.push(`/shortlist/${id}`);
+    }
+  }, [unvotedCount]);
 
   // useEffect(() => {
   //   if (movieData) {
   //     console.log(movieData)
   //     const movie = {
   //       title: movieData.title,
-  //       originalTitle: movieData. 
+  //       originalTitle: movieData.
   //       year: 2003,
   //       rating: 'PG-13',
   //       releaseDate: '12/25/2003',
@@ -139,8 +183,6 @@ export function Vote({ id }: { id: string }) {
   //     };
   //   }
   // }, [movieData]);
-
-
 
   // const movie = {
   //   title: 'Big Fish',
@@ -168,7 +210,7 @@ export function Vote({ id }: { id: string }) {
   // Set the gradient dynamically when the dominant color is extracted
   useEffect(() => {
     if (movieData) {
-      console.log(movieData)
+      console.log("data:", movieData);
       // Extract the RGB values from the dominant color
       const [r, g, b] = movieData.dominantColor;
 
@@ -208,7 +250,7 @@ export function Vote({ id }: { id: string }) {
           position: 'relative',
         }}
       >
-      {loading ? (
+        {loading ? (
           <div
             style={{
               height: '100%',
@@ -219,58 +261,80 @@ export function Vote({ id }: { id: string }) {
             }}
           >
             <Loader color="pink" size="xl" type="dots" />
-            <Text size="xl" >{ loadingText }</Text>
+            <Text size="xl">{loadingText}</Text>
           </div>
         ) : (
-        <div className={classes.outterContainer} style={{ backgroundImage: `url(${backdropUrl})` }}>
-          <div  className={classes.glassEffect}>
-          <div className={classes.innerContainer} style={{ backgroundImage: gradient }}>
-            <div className={classes.content}>
-              {/* Left Section - Poster */}
-              <div>
-                <Image
-                  src={posterUrl}
-                  alt={movieData.title}
-                  radius="lg"
-                  style={{ width: '300px' }}
-                />
-              </div>
-              <div style={{ paddingLeft: '2rem', }}>
-                {/* Right Section - Details */}
-                <div style={{ flex: 1 }}>
-                  {/* Title and Metadata */}
-                  <Title order={1} fz="4rem" style={{color: 'white'}}>
-                    {movieData.title}{' '}
-                    <Text component="span" fz="3rem" color="white">
-                      ({movieData.releaseDate?.substr(0, 4)})
-                    </Text>
-                  </Title>
-                  <Text fz="1rem" color="white" mt="xs">
-                          {movieData.countries.join(', ')} • {movieData.genres.join(', ')} • {movieData.runtime} min Pool: {unvotedCount} Shortlist: {shortlistedCount }
-                  </Text>
-
-                  {/* User Score */}
-                  <Group mt="md" gap="sm">
-                    <Badge
-                      size="lg"
-                      color="green"
-                      radius="xl"
-                      style={{ fontSize: '1rem', fontWeight: 'bold' }}
-                    >
-                      {movieData.voteAverage * 10}%
+          <div
+            className={classes.outterContainer}
+            style={{ backgroundImage: `url(${backdropUrl})` }}
+          >
+            <div className={classes.glassEffect}>
+              <div className={classes.innerContainer} style={{ backgroundImage: gradient }}>
+                <div className={classes.progress}>
+                  <Badge
+                    size="lg"
+                    color="cyan"
+                    radius="xl"
+                    style={{ fontSize: '1rem', fontWeight: 'bold' }}
+                  >
+                    Pool left
+                  </Badge>
+                    <Title size="h2" c="white">{' '}{unvotedCount}{' '}</Title>
+                  <Badge
+                    size="lg"
+                    color="teal"
+                    radius="xl"
+                    style={{ fontSize: '1rem', fontWeight: 'bold', marginLeft: '2rem' }}
+                  >
+                    Shortlist
                     </Badge>
-                    <Text size="lg" fw={500} color="white">
-                      User Score
-                    </Text>
-                  </Group>
+                    <Title size="h2" c="white">{' '}{shortlistedCount}/10 </Title>
+                </div>
+                <div className={classes.content}>
+                  {/* Left Section - Poster */}
+                  <div >
+                    <Image
+                      src={posterUrl}
+                      alt={movieData.title}
+                      radius="lg"
+                      className={classes.poster}
+                    />
+                  </div>
+                  {/* Right Section - Details */}
+                  <div style={{ paddingLeft: '2rem' }}>
 
-                  {/* Overview */}
-                  <Text fw={700} size="xl" mt="xl" color="white">
-                    {movieData.tagline}
-                  </Text>
-                  <Text fw={500} size="lg" mt="lg" color="white">{movieData.overview}</Text>
+                      {/* Title and year */}
+                      <Title order={1} fz="3.5rem" style={{ color: 'white' }}>
+                        {movieData.title}{' '}
+                        <Text component="span" fz="3rem" color="white">
+                          ({movieData.releaseDate?.substr(0, 4)})
+                        </Text>
+                      </Title>
+                      {/* User Score and metadata*/}
+                      <Group mt="md" gap="sm">
+                        <Badge
+                          size="lg"
+                          color="green"
+                          radius="xl"
+                          style={{ fontSize: '1rem', fontWeight: 'bold' }}
+                        >
+                          {Math.round(movieData.voteAverage * 10)}%
+                        </Badge>
+                        <Text fz="1.1rem" color="white">
+                        {movieData.countries.join(', ')} • {movieData.genres.join(', ')} •{' '}
+                        {movieData.runtime} min
+                      </Text>
+                      </Group>
 
-                  {/* Crew Information
+                      {/* Overview */}
+                      <Text fw={700} size="xl" color="white" className={classes.tagline}>
+                        {movieData.tagline}
+                      </Text>
+                      <Text fw={500} size="lg" color="white" className={classes.overview}>
+                        {movieData.overview}
+                      </Text>
+
+                      {/* Crew Information
                   <Group mt="xl" gap="xl">
                     <div>
                       <Text size="lg" fw={700} color="white">
@@ -297,47 +361,46 @@ export function Vote({ id }: { id: string }) {
                       </Text>
                     </div>
                   </Group> */}
+                  </div>
                 </div>
+                <Group className={classes.buttons} justify="center" gap="2rem">
+                  <Button
+                    className={classes.button}
+                    size="lg"
+                    radius="xl"
+                    variant="gradient"
+                    gradient={{ from: 'pink', to: 'yellow', deg: 60 }}
+                    onClick={addToLike}
+                  >
+                    Watched & Like
+                  </Button>
+                  <Button
+                    className={classes.button}
+                    size="lg"
+                    radius="xl"
+                    variant="gradient"
+                    gradient={{ from: 'cyan', to: 'green', deg: 60 }}
+                    onClick={addToShortlist}
+                  >
+                    Add to Shortlist
+                  </Button>
+                  <Button
+                    className={classes.button}
+                    size="lg"
+                    radius="xl"
+                    variant="gradient"
+                    gradient={{ from: 'grey', to: 'dimmed', deg: 60 }}
+                    onClick={skip}
+                  >
+                    Skip
+                  </Button>
+                </Group>
               </div>
             </div>
-            <Group justify="center" mt="xl" gap="2rem">
-              <Button
-                className={classes.button}
-                size="lg"
-                radius="xl"
-                variant="gradient"
-                gradient={{ from: 'pink', to: 'yellow', deg: 60 }}
-                onClick={addToLike}
-              >
-                Watched & Like
-              </Button>
-              <Button
-                className={classes.button}
-                size="lg"
-                radius="xl"
-                variant="gradient"
-                gradient={{ from: 'cyan', to: 'green', deg: 60 }}
-                onClick={addToShortlist}
-              >
-                Add to Shortlist
-              </Button>
-              <Button
-                className={classes.button}
-                size="lg"
-                radius="xl"
-                variant="outline"
-                color="white"
-                onClick={skip}
-              >
-                Skip
-              </Button>
-            </Group>
           </div>
-          </div>
-        </div>
-        // {/* Decorative Images */}
-        // {/* <Image src="/bg-1.png" className={classes.bottomLeftImage} />
-        // <Image src="/bg-2.png" className={classes.bottomRightImage} /> */}
+          // {/* Decorative Images */}
+          // {/* <Image src="/bg-1.png" className={classes.bottomLeftImage} />
+          // <Image src="/bg-2.png" className={classes.bottomRightImage} /> */}
         )}
       </Paper>
     </>

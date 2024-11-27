@@ -16,12 +16,9 @@ export interface Parties extends Document {
   };
   moviePool: {
     movieId: string;
-    status: 'unvoted' | 'watched' | 'shortlisted' | 'skipped';
+    status: 'unvoted' | 'liked' | 'shortlisted' | 'skipped';
   }[];
-  shortlist: {
-    movieId: string;
-    status: 'unvoted' | 'shortlisted' | 'skipped';
-  }[];
+  shortlist: string[];
   winner?: string;
   completedAt?: Date;
 }
@@ -78,24 +75,15 @@ const PartySchema: Schema = new Schema<Parties>({
       },
       status: {
         type: String,
-        enum: ['unvoted', 'watched', 'shortlisted', 'skipped'],
+        enum: ['unvoted', 'liked', 'shortlisted', 'skipped'],
         required: true,
       },
     },
   ],
-  shortlist: [
-    {
-      movieId: {
-        type: String,
-        required: true,
-      },
-      status: {
-        type: String,
-        enum: ['unvoted', 'shortlisted', 'skipped'],
-        required: true,
-      },
-    },
-  ],
+  shortlist: {
+    type: [String],
+    default: [],
+  },
   winner: {
     type: String,
   },
@@ -104,6 +92,6 @@ const PartySchema: Schema = new Schema<Parties>({
   },
 });
 
-PartySchema.index({ _id: 1, 'moviePool.movieId': 1 });
+// PartySchema.index({ _id: 1, 'moviePool.movieId': 1 });
 
 export default mongoose.models.Party || mongoose.model<Parties>('Party', PartySchema);

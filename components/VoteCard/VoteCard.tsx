@@ -1,140 +1,142 @@
 'use client';
 
+import { useEffect, useState } from 'react';
 import { useRouter } from 'next/navigation';
-import { IconCircleCheck } from '@tabler/icons-react';
-import { Button, Grid, Image, List, Paper, rem, Text, ThemeIcon, Title } from '@mantine/core';
-import classes from './Home.module.css';
+import { Badge, Button, Group, Image, Loader, Paper, Text, Title, Popover } from '@mantine/core';
+import classes from './VoteCard.module.css';
 
-export function Home() {
-  const router = useRouter(); // Hook for navigation
+export function VoteCard() {
+  const BASE_IMAGE_URL = 'https://image.tmdb.org/t/p';
 
-  const navigateToQuestions = () => {
-    router.push('/questions'); // Navigate to the /questions page
+  const [gradient, setGradient] = useState('');
+
+  const movieData = {
+    title: 'This is a very long Movie Name',
+    year: 2003,
+    rating: 'PG-13',
+    releaseDate: '12/25/2003',
+    genres: ['Adventure', 'Fantasy', 'Drama'],
+    countries: ['US'],
+    runtime: '2h 5m',
+    userScore: 78,
+    tagline: 'An adventure as big as life itself!',
+    overview:
+      'Throughout his life Edward Bloom has always been a man of big appetites, enormous passions and tall tales. In his later years, he remains a huge mystery to his son, William. Now, to get to know the real man, Will begins piecing together a true picture of his father from flashbacks of his amazing adventures.',
+    director: 'Tim Burton',
+    writer: 'Daniel Wallace',
+    screenplay: 'John August',
+    streamingPlatform: 'Pluto TV',
+    posterPath: '/tjK063yCgaBAluVU72rZ6PKPH2l.jpg',
+    backdropPath: '/bLqUd0tBvKezDr9MEla7k34i3rp.jpg',
+    dominantColor: [188, 201, 214],
+    voteAverage: 10,
   };
+
+  const backdropUrl = `${BASE_IMAGE_URL}/w1280${movieData.backdropPath}`;
+  const posterUrl = `${BASE_IMAGE_URL}/w780${movieData.posterPath}`;
+
+  useEffect(() => {
+    if (movieData) {
+      console.log(movieData);
+      // Extract the RGB values from the dominant color
+      const [r, g, b] = movieData.dominantColor;
+      const gradient = `linear-gradient(
+        to bottom,
+        rgba(${r}, ${g}, ${b}, 1) 0%,
+        rgba(${r}, ${g}, ${b}, 0.5) 55%,
+        rgba(255, 255, 255, 1) 95%
+      )`;
+      //console.log(gradient);
+      setGradient(gradient);
+      // setPosterUrl(`${BASE_IMAGE_URL}/w780${movieData.posterPath}`);
+      // setBackdropUrl(`${BASE_IMAGE_URL}/w1280${movieData.backdropPath}`);
+      // setLoading(false);
+    }
+  }, [movieData]);
 
   return (
     <>
       <Paper
-        radius="xl"
         style={{
-          height: '80vh',
-          display: 'flex',
-          flexDirection: 'column',
-          alignItems: 'center',
-          position: 'relative',
+          borderRadius: 'inherit',
+          height: '100%',
         }}
       >
-        <Grid className={classes.grid}>
-          <Grid.Col span={6}>
-            <Text
-              className={classes.title}
-              variant="gradient"
-              gradient={{ from: 'pink', to: 'yellow' }}
-            >
-              ReelMates
-            </Text>
-            <Text className={classes.subtitle}>Simplify Movie Nights,</Text>
-            <Text className={classes.subtitle} component="span">
-              Amplify Fun!
-            </Text>
-          </Grid.Col>
+        
+          <div
+            className={classes.outterContainer}
+            style={{ backgroundImage: `url(${backdropUrl})` }}
+          >
+            <div className={classes.glassEffect}>
+              <div className={classes.innerContainer} style={{ backgroundImage: gradient }}>
+                <div className={classes.content}>
+                  {/* Left Section - Poster */}
+                  <div className={classes.poster}>
+                    <Image
+                      src={posterUrl}
+                      alt={movieData.title}
+                      radius="lg"
+                    />
+                  </div>
+                 {/* Right Section - Info */}
+                  <div className={classes.details}>
+                      {/* Title and Metadata */}
+                      <Title order={1} className={classes.title} style={{ color: 'white' }}>
+                        {movieData.title}
+                      </Title>
+                      <Text fz="1rem" color="white" mt="xs">
+                        {movieData.countries.join(', ')} • {movieData.genres.join(', ')} •{' '}
+                        {movieData.runtime} min
+                      </Text>
 
-          <Grid.Col span={6}>
-            <Title ta="center" order={1} pt="2rem">
-              Discover the perfect film for your party, effortlessly!
-            </Title>
-            <List
-              className={classes.steplist}
-              spacing="xs"
-              center
-              icon={
-                <ThemeIcon color="pink" size={24} radius="xl">
-                  <IconCircleCheck style={{ width: rem(16), height: rem(16) }} />
-                </ThemeIcon>
-              }
-              c="dimmed"
-            >
-              <List.Item>
-                <Grid w="35vw" align="center">
-                  <Grid.Col span={3}>
-                    <Text className={classes.steptext} fw={700} ta="center">
-                      Step 1:
-                    </Text>
-                  </Grid.Col>
-                  <Grid.Col span={9}>
-                    <Text className={classes.steptext}>Create a party 🥳</Text>
-                  </Grid.Col>
-                </Grid>
-              </List.Item>
+                      {/* User Score */}
+                        <Badge
+                          size="lg"
+                          color="green"
+                          radius="xl"
+                          mt="md"
+                          style={{ fontSize: '1rem', fontWeight: 'bold' }}
+                        >
+                          {movieData.voteAverage * 10}%
+                        </Badge>
 
-              <List.Item>
-                <Grid w="35vw" align="center">
-                  <Grid.Col span={3}>
-                    <Text className={classes.steptext} fw={700} ta="center">
-                      Step 2:
-                    </Text>
-                  </Grid.Col>
-                  <Grid.Col span={9}>
-                    <Text className={classes.steptext}>Set movie preferences 🎬</Text>
-                  </Grid.Col>
-                </Grid>
-              </List.Item>
-
-              <List.Item>
-                <Grid w="35vw" align="center">
-                  <Grid.Col span={3}>
-                    <Text className={classes.steptext} fw={700} ta="center">
-                      Step 3:
-                    </Text>
-                  </Grid.Col>
-                  <Grid.Col span={8}>
-                    <Text className={classes.steptext}>
-                      Vote on suggestions & get more recommendations 🗳️
-                    </Text>
-                  </Grid.Col>
-                </Grid>
-              </List.Item>
-
-              <List.Item>
-                <Grid w="35vw" align="center">
-                  <Grid.Col span={3}>
-                    <Text className={classes.steptext} fw={700} ta="center">
-                      Step 4:
-                    </Text>
-                  </Grid.Col>
-                  <Grid.Col span={9}>
-                    <Text className={classes.steptext}>Get final movie selection 🎯</Text>
-                  </Grid.Col>
-                </Grid>
-              </List.Item>
-            </List>
-          </Grid.Col>
-        </Grid>
-        <Button
-          className={classes.button}
-          size="xl"
-          radius="lg"
-          variant="gradient"
-          gradient={{ from: 'pink', to: 'yellow', deg: 60 }}
-          onClick={navigateToQuestions}
-        >
-          Create New Party 🎬
-        </Button>
-        <Button
-          disabled
-          className={classes.button}
-          size="xl"
-          radius="lg"
-          variant="gradient"
-          gradient={{ from: 'pink', to: 'yellow', deg: 60 }}
-          mt="1rem"
-        >
-          Create A Room 🥳
-        </Button>
-        Coming Soon ...
-        {/* Decorative Images */}
-        <Image src="/bg-1.png" className={classes.bottomLeftImage} />
-        <Image src="/bg-2.png" className={classes.bottomRightImage} />
+                      {/* Overview */}
+                      <Text fw={700} size="xl" mt="lg" color="white">
+                        {movieData.tagline}
+                      </Text>
+                      {/* <Text fw={500} size="lg" mt="lg" color="white">
+                        {movieData.overview}
+                      </Text> */}
+                  </div>
+              </div>
+              <div style={{ display: 'flex', gap: '2rem' }}>
+                <Popover position="top" shadow="md">
+                  <Popover.Target>
+                    <Button className={classes.moreButton} 
+                      radius="xl"
+                      variant="light"
+                      color="pink">
+                      More Info
+                      </Button>
+                  </Popover.Target>
+                  <Popover.Dropdown>
+                    <Text size="xs">This is uncontrolled popover, it is opened when button is clicked</Text>
+                  </Popover.Dropdown>
+                </Popover>
+                <Button
+                  className={classes.button}
+                  size="lg"
+                  radius="xl"
+                  variant="gradient"
+                  gradient={{ from: 'pink', to: 'yellow', deg: 60 }}
+                  //onClick={}
+                >
+                  Choose This
+                </Button>
+                </div>
+              </div>
+            </div>
+          </div>
       </Paper>
     </>
   );

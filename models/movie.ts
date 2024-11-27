@@ -1,4 +1,4 @@
-import mongoose, { Schema, Document, Model } from 'mongoose';
+import mongoose, { Document, Model, Schema } from 'mongoose';
 
 export interface Movies extends Document {
   tmdbId: string; // TMDB movie ID
@@ -99,7 +99,7 @@ const MovieSchema: Schema = new Schema<Movies>({
   },
 });
 
-MovieSchema.index({ 'tmdbId': 1 });
+MovieSchema.index({ tmdbId: 1 });
 
 // Create and export the Movie model
 export default mongoose.models.Movie || mongoose.model<Movies>('Movie', MovieSchema);

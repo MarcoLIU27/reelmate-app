@@ -2,6 +2,7 @@
 
 import { useState } from 'react';
 import { useRouter } from 'next/navigation';
+import ColorThief from 'colorthief';
 import {
   Button,
   Group,
@@ -15,7 +16,6 @@ import {
   Title,
 } from '@mantine/core';
 import classes from './Questions.module.css';
-import ColorThief from 'colorthief';
 
 const genres = [
   { value: 'action', label: 'Action 🥊', id: '28' },
@@ -58,12 +58,12 @@ const presets = {
 const cacheDataLocally = (key: string, data: any) => {
   const existingData = sessionStorage.getItem(key);
   if (existingData) {
-    console.log("Data already exists in cache");
+    console.log('Data already exists in cache');
     return; // Skip writing if already cached
   }
   const dataToStore = JSON.stringify(data);
   sessionStorage.setItem(key, dataToStore);
-  console.log("Data cached");
+  console.log('Data cached');
 };
 
 function Questions() {
@@ -109,7 +109,7 @@ function Questions() {
       const img = new Image();
       img.crossOrigin = 'anonymous'; // Ensure cross-origin permissions
       img.src = imageUrl;
-  
+
       img.onload = () => {
         try {
           const colorThief = new ColorThief();
@@ -119,7 +119,7 @@ function Questions() {
           reject(new Error(`Error extracting dominant color: ${err}`));
         }
       };
-  
+
       img.onerror = (err) => {
         reject(new Error(`Error loading image: ${err}`));
       };
@@ -228,23 +228,20 @@ function Questions() {
       const BASE_IMAGE_URL = 'https://image.tmdb.org/t/p';
       const posterUrl = `${BASE_IMAGE_URL}/w780${movieDetails.details.poster_path}`;
       const proxiedPosterUrl = `/api/proxy?url=${encodeURIComponent(posterUrl)}`;
-    
-      // Generate Gradient Overlay for Backdrop
+
       let dominantColor: number[] | null = null;
       try {
         dominantColor = await calculateDominantColor(proxiedPosterUrl);
-        if (dominantColor) {
-          //console.log('Dominant Color:', dominantColor);
-        } else {
+        if (!dominantColor) {
           console.error('No dominant color extracted.');
         }
       } catch (error) {
         console.error('Error in dominant color processing:', error);
-        throw error; // Re-throw the error for higher-level handling
+        throw error;
       }
-      
+
       // Save movie details to database
-      const createMovieBody = JSON.stringify({
+      const createMovieBody = {
         tmdbId: movieDetails.details.id.toString(),
         title: movieDetails.details.title,
         originalTitle: movieDetails.details.original_title,
@@ -263,12 +260,12 @@ function Questions() {
         posterPath: movieDetails.details.poster_path,
         backdropPath: movieDetails.details.backdrop_path,
         dominantColor: dominantColor,
-      });
+      };
       //console.log(createMovieBody)
       // Cache to session storage
       cacheDataLocally(movieId, createMovieBody);
-      
-      const res = await fetch(`/api/movie`, { method: 'POST', body: createMovieBody });
+
+      const res = await fetch(`/api/movie`, { method: 'POST', body: JSON.stringify(createMovieBody) });
       if (!res.ok) {
         throw new Error(`Failed to save movie ${movieId}`);
       }
@@ -287,7 +284,6 @@ function Questions() {
       router.push(`/vote/${partyId}`);
       //setLoading(false); // Hide loader
     }
-
   };
 
   return (
@@ -313,7 +309,7 @@ function Questions() {
             }}
           >
             <Loader color="pink" size="xl" type="dots" />
-            <Text size="xl" >{ loadingText }</Text>
+            <Text size="xl">{loadingText}</Text>
           </div>
         ) : (
           <>

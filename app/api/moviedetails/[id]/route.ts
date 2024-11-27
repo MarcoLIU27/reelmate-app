@@ -21,7 +21,9 @@ export async function GET(req: NextRequest, props: { params: Promise<{ id: strin
 
     // Handle TMDB-specific errors gracefully
     return NextResponse.json(
-      { message: error.response?.data?.status_message || 'Failed to fetch movie details from TMDB' },
+      {
+        message: error.response?.data?.status_message || 'Failed to fetch movie details from TMDB',
+      },
       { status: error.response?.status || 500 }
     );
   }
