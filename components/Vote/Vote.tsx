@@ -158,6 +158,10 @@ export function Vote({ id }: { id: string }) {
       // Get from Session Storage:
       console.log(moviePoolStorage.getAll());
       console.log(shortlistStorage.getAll());
+      // TODO: If user open in a new session, movie pool storage will be cleared. Need to fetch full MoviePool from DB and store.
+      if (moviePoolStorage.getAll() === null) {
+        // TODO: ...
+      }
       setUnvotedCount(moviePoolStorage.getLength());
       setShortlistedCount(shortlistStorage.getLength());
       setCurrentMovieId(moviePoolStorage.getFirst());
@@ -358,7 +362,7 @@ export function Vote({ id }: { id: string }) {
                       <Text fw={700} size="xl" color="white" className={classes.tagline}>
                         {movieData.tagline}
                       </Text>
-                      <Text fw={500} size="lg" color="white" className={classes.overview}>
+                      <Text fw={500} size="lg" color="white" lineClamp={7} className={classes.overview}>
                         {movieData.overview}
                       </Text>
 

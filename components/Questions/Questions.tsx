@@ -44,9 +44,9 @@ const genres = [
 const languages = [
   { value: 'en', label: 'English' },
   { value: 'zh', label: 'Chinese' },
-  { value: 'jp', label: 'Japanese' },
-  { value: 'sp', label: 'Spanish' },
-  { value: 'kr', label: 'Korean' },
+  { value: 'ja', label: 'Japanese' },
+  { value: 'es', label: 'Spanish' },
+  { value: 'ko', label: 'Korean' },
   { value: 'fr', label: 'French' },
 ];
 
@@ -352,6 +352,11 @@ function Questions() {
     const response = await fetch(`/api/search?${queryString}`);
     const result = await response.json();
     //console.log(result);
+
+    // If no result found, redirect to /result-not-found
+    if (result.total_results === 0) {
+      router.push('/result-not-found');
+    }
 
     // Step 2: Save preferences and movie pool to database
     setLoadingText('Creating your movie pool...');

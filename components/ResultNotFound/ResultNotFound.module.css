@@ -1,0 +1,59 @@
+.button {
+  transition: transform 0.2s ease;
+  box-shadow: 0.2s ease;
+  margin-top: 20vh;
+  width: 300px;
+
+  @media (max-height: 750px) {
+    margin-top: 14vh;
+  }
+
+  @media (min-width: 2000px) {
+    width: 400px;
+    height: 75px;
+  }
+}
+
+.button:hover {
+  transform: scale(1.05); /* Slightly enlarges the button */
+  box-shadow: 0 4px 15px rgba(0, 0, 0, 0.2); /* Adds a shadow */
+}
+
+/* Decorative Images - Bottom Left */
+.bottomLeftImage {
+  position: absolute; 
+  width: 25vw;
+  height: auto;
+  bottom: 0;
+  left: 0;
+  border-radius: 0 0 0 2rem;
+  z-index: 1; /* Ensure it appears above the background */
+
+  @media (max-height: 900px) {
+    width: 22vw;
+  }
+
+  @media (max-height: 750px) {
+    width: 18vw;
+  }
+}
+
+/* Decorative Images - Bottom Right */
+.bottomRightImage {
+  position: absolute;
+  width: 24vw;
+  height: auto;
+  bottom: 0;
+  right: 0;
+  border-radius: 0 0 2rem 0;
+  z-index: 1; /* Ensure it appears above the background */
+
+  @media (max-height: 900px) {
+    width: 22vw;
+  }
+
+  @media (max-height: 750px) {
+    width: 18vw;
+  }
+}
+

@@ -5,12 +5,13 @@ import { useRouter } from 'next/navigation';
 import { Badge, Button, Group, Image, Loader, Paper, Text, Title } from '@mantine/core';
 import classes from './Comparison.module.css';
 import { VoteCard } from '@/components/VoteCard/VoteCard';
+import shortlistStorage from '@/utils/shortlistStorage';
 
 export function Comparison({ id }: { id: string }) {
 
   const [loading, setLoading] = useState(false);
   const [loadingText, setLoadingText] = useState<String>('Loading');
-  const [shortlist, setShortlist] = useState<string[]>(['1312697', '1005981', '57395', '86282', '45576']);
+  const [shortlist, setShortlist] = useState<string[]>([]);
   const [currentPair, setCurrentPair] = useState<[string, string] | null>(null);
   const [winner, setWinner] = useState<string | null>(null);
 
@@ -30,6 +31,11 @@ export function Comparison({ id }: { id: string }) {
       router.push(`/winner/${id}`);
     }
   }, [shortlist]);
+
+  useEffect(() => {
+    const shortlist = shortlistStorage.getAll();
+    setShortlist(shortlist);
+  }, []);
 
   // Handle user selection
   const handleVote = (selected: string) => {
