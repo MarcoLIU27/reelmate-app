@@ -58,14 +58,35 @@ const presets = {
 };
 
 const cacheDataLocally = (key: string, data: any) => {
-  const existingData = sessionStorage.getItem(key);
-  if (existingData) {
-    console.log('Data already exists in cache');
-    return; // Skip writing if already cached
-  }
   const dataToStore = JSON.stringify(data);
-  sessionStorage.setItem(key, dataToStore);
-  console.log('Data cached');
+  if (sessionStorage.getItem(key) !== dataToStore) {
+    sessionStorage.setItem(key, dataToStore);
+    console.log('Data cached');
+  } else {
+    console.log('Data already exists in cache');
+  }
+};
+
+export const calculateDominantColor = async (imageUrl: string): Promise<number[] | null> => {
+  return new Promise((resolve, reject) => {
+    const img = new Image();
+    img.crossOrigin = 'anonymous'; // Ensure cross-origin permissions
+    img.src = imageUrl;
+
+    img.onload = () => {
+      try {
+        const colorThief = new ColorThief();
+        const dominantColor = colorThief.getColor(img);
+        resolve(dominantColor);
+      } catch (err) {
+        reject(new Error(`Error extracting dominant color: ${err}`));
+      }
+    };
+
+    img.onerror = (err) => {
+      reject(new Error(`Error loading image: ${err}`));
+    };
+  });
 };
 
 function Questions() {
@@ -105,28 +126,6 @@ function Questions() {
     language: 'en-US',
     page: '1',
     sort_by: 'popularity.desc',
-  };
-
-  const calculateDominantColor = async (imageUrl: string): Promise<number[] | null> => {
-    return new Promise((resolve, reject) => {
-      const img = new Image();
-      img.crossOrigin = 'anonymous'; // Ensure cross-origin permissions
-      img.src = imageUrl;
-
-      img.onload = () => {
-        try {
-          const colorThief = new ColorThief();
-          const dominantColor = colorThief.getColor(img);
-          resolve(dominantColor);
-        } catch (err) {
-          reject(new Error(`Error extracting dominant color: ${err}`));
-        }
-      };
-
-      img.onerror = (err) => {
-        reject(new Error(`Error loading image: ${err}`));
-      };
-    });
   };
 
   /**
@@ -338,6 +337,18 @@ function Questions() {
 
     // Step 1: Search movies by preferences
     setLoadingText('Searching by your preference...');
+    // Cache preferences to local
+    const localParams = {
+      with_genres: selectedGenresIds,
+      without_genres: selectedDislikedGenresIds,
+      with_original_language: selectedLanguages.join('|'),
+      'release_date.gte': releaseDateGte,
+      'release_date.lte': releaseDateLte,
+      'vote_average.gte': voteAverageGte,
+    };
+    console.log(localParams);
+    cacheDataLocally("preferences", localParams);
+
     const params = {
       ...default_search_params,
       with_genres: selectedGenresIds,
@@ -365,7 +376,6 @@ function Questions() {
       movieId: movie.id.toString(),
       status: 'unvoted',
     }));
-    //console.log(moviePool);
 
     const createPartyBody = JSON.stringify({
       genres: selectedGenresIds,
@@ -390,7 +400,7 @@ function Questions() {
       console.error('Error creating party:', error);
     }
 
-    // Step 3: Cache movie details to database
+    // Step 3: Cache movie details to local/database
     moviePoolStorage.initialize(); // Init session storage of movie pool and shortlist (only once, make sure clear cache data before voting)
     shortlistStorage.initialize();
     let cachedMovie: number = 0;
@@ -404,7 +414,6 @@ function Questions() {
         throw new Error(`Failed to fetch movie ${movieId}`);
       }
       const movieDetails = await movieDetailsRes.json();
-      //console.log(movieDetails)
 
       // Calculate dominantColor for backdrop image
       const BASE_IMAGE_URL = 'https://image.tmdb.org/t/p';
