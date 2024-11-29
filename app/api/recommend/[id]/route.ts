@@ -8,24 +8,23 @@ export async function POST(req: NextRequest, props: { params: Promise<{ id: stri
 
   const { id } = params;
   const body = await req.json();
-  const {
-    with_genres,
-    without_genres,
-    with_original_language,
-    'release_date.gte': releaseDateGte,
-    'release_date.lte': releaseDateLte,
-    'vote_average.gte': voteAverageGte,
-  } = body;
+  console.log(body);
+  const { preferenceData, poolHistory } = body;
 
   try {
     // Make the request to TMDB
-    const response = await TMDBClient.get(`/movie/${id}/recommendations`);
-    const recommendations = response.data.results;
+    const responseRecommend = await TMDBClient.get(`/movie/${id}/recommendations`);
+    const recommend = responseRecommend.data.results;
+
+    const responseSimilar = await TMDBClient.get(`/movie/${id}/similar`);
+    const similar = responseSimilar.data.results;
+
+    const recommendations = recommend.concat(similar);
 
     // Convert string filters to arrays for easier handling
-    const withGenresArray = with_genres ? with_genres.split('|') : [];
-    const withoutGenresArray = without_genres ? without_genres.split(',') : [];
-    const withLanguagesArray = with_original_language ? with_original_language.split('|') : [];
+    const withGenresArray = preferenceData.with_genres ? preferenceData.with_genres.split('|') : [];
+    const withoutGenresArray = preferenceData.without_genres ? preferenceData.without_genres.split(',') : [];
+    const withLanguagesArray = preferenceData.with_original_language ? preferenceData.with_original_language.split('|') : [];
 
     // Filter recommendations by user preferences
     const filteredRecommendations = recommendations
@@ -38,9 +37,10 @@ export async function POST(req: NextRequest, props: { params: Promise<{ id: stri
         const matchesLanguage =
           withLanguagesArray.length === 0 || withLanguagesArray.includes(movie.original_language);
         const releaseDate = new Date(movie.release_date);
-        const matchesReleaseDateGte = releaseDate >= new Date(releaseDateGte);
-        const matchesReleaseDateLte = releaseDate <= new Date(releaseDateLte);
-        const matchesVoteAverage = movie.vote_average >= parseFloat(voteAverageGte);
+        const matchesReleaseDateGte = releaseDate >= new Date(preferenceData['release_date.gte']);
+        const matchesReleaseDateLte = releaseDate <= new Date(preferenceData['release_date.lte']);
+        const matchesVoteAverage = movie.vote_average >= parseFloat(preferenceData['vote_average.gte']);
+        const notInPoolHistory = !poolHistory.includes(movie.id.toString());
 
         return (
           matchesWithGenres &&
@@ -48,7 +48,8 @@ export async function POST(req: NextRequest, props: { params: Promise<{ id: stri
           matchesLanguage &&
           matchesReleaseDateGte &&
           matchesReleaseDateLte &&
-          matchesVoteAverage
+          matchesVoteAverage &&
+          notInPoolHistory
         );
       })
       .map((movie: any) => ({ id: movie.id }))
@@ -60,3 +61,4 @@ export async function POST(req: NextRequest, props: { params: Promise<{ id: stri
     return NextResponse.json({ message: error.message }, { status: error.response?.status || 500 });
   }
 }
+

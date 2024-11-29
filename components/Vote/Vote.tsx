@@ -3,11 +3,12 @@
 import { useEffect, useState } from 'react';
 import { useRouter } from 'next/navigation';
 import { Badge, Button, Group, Image, Loader, Paper, Text, Title } from '@mantine/core';
-import { Notifications, notifications } from '@mantine/notifications';
+import { notifications } from '@mantine/notifications';
 import classes from './Vote.module.css';
 import moviePoolStorage from '@/utils/moviePoolStorage';
 import shortlistStorage from '@/utils/shortlistStorage';
 import { calculateDominantColor } from '@/components/Questions/Questions';
+import moviePoolHistoryStorage from '@/utils/moviePoolHistoryStorage';
 
 const cacheDataLocally = (key: string, data: any) => {
   const dataToStore = JSON.stringify(data);
@@ -39,7 +40,6 @@ export function Vote({ id }: { id: string }) {
   const [posterUrl, setPosterUrl] = useState<string>('');
   const [backdropUrl, setBackdropUrl] = useState<string>('');
   const [gradient, setGradient] = useState('');
-  const [loadingRecommend, setLoadingRecommend] = useState(false);
   const router = useRouter();
 
   const addToLike = async () => {
@@ -112,6 +112,7 @@ export function Vote({ id }: { id: string }) {
     setLoadingText("Searching for recommendations...");
     // Get user preferences (From DB / local cache)
     const preferenceData = getCachedData("preferences");
+    const poolHistory = moviePoolHistoryStorage.getAll();
     if (preferenceData == null) {
       // TODO: Get from DB
     }
@@ -122,7 +123,7 @@ export function Vote({ id }: { id: string }) {
         headers: {
           'Content-Type': 'application/json',
         },
-        body: JSON.stringify(preferenceData),
+        body: JSON.stringify({ preferenceData, poolHistory }),
       });
       if (!response.ok) {
         throw new Error('Failed to get recommendations');
@@ -130,23 +131,33 @@ export function Vote({ id }: { id: string }) {
       const recommendations = await response.json();
       console.log("recommend:", recommendations);
       if (recommendations.numResults === 0) {
-        // Popup: Ah-oh, we can't find any recommendation matching your preferences now
+        // Popup: Not found
         notifications.show({
           title: 'No Recommendations Found',
           message: "Ah-oh, we can't find any recommendations matching your preferences now.",
           autoClose: 3000, // Automatically close after 3 seconds
+          color: 'pink',
+          radius: 'lg',
+          position: 'top-center',
         });
       } else {
         const recommendationIds = recommendations.recommendations.map((rec) => rec.id);
-        recommendationIds.forEach((id) => moviePoolStorage.add(id.toString()));
+        // Add new recommendations to movie pool
+        recommendationIds.forEach((id) => {
+            moviePoolStorage.add(id.toString());
+            moviePoolHistoryStorage.add(id.toString());
+        });
       
-        // Popup: Successfully added {} recommendations to your movie pool!
+        // Popup: Successful
         notifications.show({
           title: 'Recommendations Added',
           message: `Successfully added ${recommendationIds.length} recommendations to your movie pool!`,
-          autoClose: 3000, // Automatically close after 3 seconds
+          //autoClose: 3000, // Automatically close after 3 seconds
+          color: 'pink',
+          radius: 'lg',
+          position: 'top-center',
         });
-      }      
+      }
 
     } catch (error) {
       console.error('Error get recommendations:', error);
@@ -251,11 +262,10 @@ export function Vote({ id }: { id: string }) {
       console.log('Fetching party data ...');
       // fetchPartyData();
       // Get from Session Storage:
-      // console.log(moviePoolStorage.getAll());
-      // console.log(shortlistStorage.getAll());
       // TODO: If user open current link in a new session, movie pool storage will be cleared. Need to fetch full MoviePool from DB and store.
       if (moviePoolStorage.getAll() === null) {
         moviePoolStorage.initialize();
+        moviePoolHistoryStorage.initialize();
         shortlistStorage.initialize();
         // TODO: fetch full MoviePool from DB and store.
       }
@@ -282,60 +292,11 @@ export function Vote({ id }: { id: string }) {
   }, [currentMovieId]);
 
   useEffect(() => {
-    if (unvotedCount === 0) {
+    if (unvotedCount === 0 || shortlistedCount === 10) {
       // TODO: Upload local shortlist to DB
       router.push(`/shortlist/${id}`);
     }
-  }, [unvotedCount]);
-
-  // useEffect(() => {
-  //   if (movieData) {
-  //     console.log(movieData)
-  //     const movie = {
-  //       title: movieData.title,
-  //       originalTitle: movieData.
-  //       year: 2003,
-  //       rating: 'PG-13',
-  //       releaseDate: '12/25/2003',
-  //       genres: ['Adventure', 'Fantasy', 'Drama'],
-  //       runtime: '2h 5m',
-  //       userScore: 78,
-  //       tagline: 'An adventure as big as life itself!',
-  //       overview:
-  //         'Throughout his life Edward Bloom has always been a man of big appetites, enormous passions and tall tales. In his later years, he remains a huge mystery to his son, William. Now, to get to know the real man, Will begins piecing together a true picture of his father from flashbacks of his amazing adventures.',
-  //       director: 'Tim Burton',
-  //       writer: 'Daniel Wallace',
-  //       screenplay: 'John August',
-  //       streamingPlatform: 'Pluto TV',
-  //       postePath: '/tjK063yCgaBAluVU72rZ6PKPH2l.jpg',
-  //       backdropPath: '/bLqUd0tBvKezDr9MEla7k34i3rp.jpg',
-  //       dominantColor: [188, 201, 214],
-  //     };
-  //   }
-  // }, [movieData]);
-
-  // const movie = {
-  //   title: 'Big Fish',
-  //   year: 2003,
-  //   rating: 'PG-13',
-  //   releaseDate: '12/25/2003',
-  //   genres: ['Adventure', 'Fantasy', 'Drama'],
-  //   runtime: '2h 5m',
-  //   userScore: 78,
-  //   tagline: 'An adventure as big as life itself!',
-  //   overview:
-  //     'Throughout his life Edward Bloom has always been a man of big appetites, enormous passions and tall tales. In his later years, he remains a huge mystery to his son, William. Now, to get to know the real man, Will begins piecing together a true picture of his father from flashbacks of his amazing adventures.',
-  //   director: 'Tim Burton',
-  //   writer: 'Daniel Wallace',
-  //   screenplay: 'John August',
-  //   streamingPlatform: 'Pluto TV',
-  //   posterPath: '/tjK063yCgaBAluVU72rZ6PKPH2l.jpg',
-  //   backdropPath: '/bLqUd0tBvKezDr9MEla7k34i3rp.jpg',
-  //   dominantColor: [188, 201, 214],
-  // };
-
-  // const backdropUrl = `${BASE_IMAGE_URL}/w1280${movie.backdropPath}`;
-  // const posterUrl = `${BASE_IMAGE_URL}/w780${movie.posterPath}`;
+  }, [unvotedCount, shortlistedCount]);
 
   // Set the gradient dynamically when the dominant color is extracted
   useEffect(() => {
@@ -343,16 +304,6 @@ export function Vote({ id }: { id: string }) {
       console.log("data:", movieData);
       // Extract the RGB values from the dominant color
       const [r, g, b] = movieData.dominantColor;
-
-      // Create a vertical gradient
-      // const gradient = `linear-gradient(
-      //   to bottom,
-      //   rgba(${r}, ${g}, ${b}, 1) 0%,
-      //   rgba(${r}, ${g}, ${b}, 0.84) 35%,
-      //   rgba(${r}, ${g}, ${b}, 0.7) 55%,
-      //   rgba(255, 255, 255, 0.7) 65%,
-      //   rgba(255, 255, 255, 1) 90%
-      // )`;
 
       const gradient = `linear-gradient(
         to bottom,
@@ -370,7 +321,6 @@ export function Vote({ id }: { id: string }) {
 
   return (
     <>
-      <Notifications />
       <Paper
         radius="xl"
         style={{

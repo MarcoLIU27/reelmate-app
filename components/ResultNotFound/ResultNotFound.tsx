@@ -6,10 +6,10 @@ import { Button, Grid, Image, List, Paper, rem, Text, ThemeIcon, Title } from '@
 import classes from './ResultNotFound.module.css';
 
 export function ResultNotFound() {
-  const router = useRouter(); // Hook for navigation
-
-  const navigateToQuestions = () => {
-    router.push('/start'); // Navigate to the /questions page
+  const router = useRouter();
+  
+  const navigateToHome = () => {
+    router.push('/start');
   };
 
   return (

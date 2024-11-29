@@ -129,7 +129,7 @@ export function VoteCard({ movieId, onVote }: {movieId: string, onVote: any}) {
                       mt="md"
                       style={{ fontSize: '1rem', fontWeight: 'bold' }}
                     >
-                      {movieData.voteAverage * 10}%
+                      {Math.round(movieData.voteAverage * 10)}%
                     </Badge>
 
                     {/* Overview */}

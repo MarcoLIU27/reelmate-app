@@ -1,8 +1,6 @@
 import '@mantine/core/styles.css';
 
-import { MantineProvider } from '@mantine/core';
 import BackgroundWrapper from '@/components/BackgroundWrapper/BackgroundWrapper';
-import { theme } from '@/theme';
 
 export const metadata = {
   title: 'ReelMate - Your Party Movie Picker!',

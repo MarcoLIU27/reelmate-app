@@ -13,21 +13,24 @@ export function Comparison({ id }: { id: string }) {
   const [loadingText, setLoadingText] = useState<String>('Loading');
   const [shortlist, setShortlist] = useState<string[]>([]);
   const [currentPair, setCurrentPair] = useState<[string, string] | null>(null);
-  const [winner, setWinner] = useState<string | null>(null);
 
   const router = useRouter();
 
-  const getCachedData = (key: string) => {
-    const cached = sessionStorage.getItem(key);
-    console.log('get cached data');
-    return cached ? JSON.parse(cached) : null;
+  const cacheDataLocally = (key: string, data: any) => {
+    const dataToStore = JSON.stringify(data);
+    if (sessionStorage.getItem(key) !== dataToStore) {
+      sessionStorage.setItem(key, dataToStore);
+      console.log('Data cached');
+    } else {
+      console.log('Data already exists in cache');
+    }
   };
 
   useEffect(() => {
     if (shortlist.length > 1) {
       setCurrentPair([shortlist[0], shortlist[1]]);
     } else if (shortlist.length === 1) {
-      setWinner(shortlist[0]);
+      cacheDataLocally("winner", shortlist[0]);
       router.push(`/winner/${id}`);
     }
   }, [shortlist]);
