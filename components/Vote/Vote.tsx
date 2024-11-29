@@ -2,7 +2,8 @@
 
 import { useEffect, useState } from 'react';
 import { useRouter } from 'next/navigation';
-import { Badge, Button, Group, Image, Loader, Paper, Text, Title } from '@mantine/core';
+import { Badge, Button, Group, Image, Loader, Modal, Paper, Text, Title } from '@mantine/core';
+import { useDisclosure } from '@mantine/hooks'
 import { notifications } from '@mantine/notifications';
 import classes from './Vote.module.css';
 import moviePoolStorage from '@/utils/moviePoolStorage';
@@ -40,6 +41,8 @@ export function Vote({ id }: { id: string }) {
   const [posterUrl, setPosterUrl] = useState<string>('');
   const [backdropUrl, setBackdropUrl] = useState<string>('');
   const [gradient, setGradient] = useState('');
+  // const [confirmModalOpened, setConfirmModalOpened] = useState(false);
+  const [opened, { open, close }] = useDisclosure(false);
   const router = useRouter();
 
   const addToLike = async () => {
@@ -180,6 +183,12 @@ export function Vote({ id }: { id: string }) {
     moviePoolStorage.remove(currentMovieId!);
     setPartyDataUpdated(false);
   };
+
+  const confirmNextStep = () => {
+    close();
+    // TODO: upload shortlist
+    router.push(`/shortlist/${id}`);
+  }
 
   // Fetch Party Data Function
   const fetchPartyData = async () => {
@@ -345,140 +354,178 @@ export function Vote({ id }: { id: string }) {
             <Text size="xl">{loadingText}</Text>
           </div>
         ) : (
-          <div
-            className={classes.outterContainer}
-            style={{ backgroundImage: `url(${backdropUrl})` }}
-          >
-            <div className={classes.glassEffect}>
-              <div className={classes.innerContainer} style={{ backgroundImage: gradient }}>
-                <div className={classes.progress}>
-                  <Badge
-                    size="lg"
-                    color="cyan"
-                    radius="xl"
-                    style={{ fontSize: '1rem', fontWeight: 'bold' }}
-                  >
-                    Pool left
-                  </Badge>
-                    <Title size="h2" c="white">{' '}{unvotedCount}{' '}</Title>
-                  <Badge
-                    size="lg"
-                    color="teal"
-                    radius="xl"
-                    style={{ fontSize: '1rem', fontWeight: 'bold', marginLeft: '2rem' }}
-                  >
-                    Shortlist
-                    </Badge>
-                    <Title size="h2" c="white">{' '}{shortlistedCount}/10 </Title>
+            <>
+              <Modal
+                opened={opened}
+                onClose={close}
+                withCloseButton={false}
+                size="xl"
+                centered
+                overlayProps={{
+                  backgroundOpacity: 0.55,
+                  blur: 3,
+                }}
+                styles={{
+                  content: { borderRadius: '5rem' },
+                }}
+              >
+                <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'space-evenly', height: '275px' }}>
+                  <Text size="xl">
+                    Are you sure to proceed to the next step?
+                  </Text>
+                  <Group gap="5rem" mt="md">
+                    <Button size="lg" radius="xl" variant="default"  onClick={close}>Cancel</Button>
+                    <Button size="lg" radius="xl"
+                        variant="gradient"
+                        gradient={{ from: 'pink', to: 'yellow', deg: 60 }} onClick={confirmNextStep}>Confirm</Button>
+                  </Group>
                 </div>
-                <div className={classes.content}>
-                  {/* Left Section - Poster */}
-                  <div >
-                    <Image
-                      src={posterUrl}
-                      alt={movieData.title}
-                      radius="lg"
-                      className={classes.poster}
-                    />
-                  </div>
-                  {/* Right Section - Details */}
-                  <div style={{ paddingLeft: '2rem' }}>
+              </Modal>
+              <div
+              className={classes.outterContainer}
+              style={{ backgroundImage: `url(${backdropUrl})` }}
+            >
+                <div className={classes.glassEffect}>
+                  <div className={classes.innerContainer} style={{ backgroundImage: gradient }}>
+                    <div className={classes.progress}>
+                      <Badge
+                        size="lg"
+                        color="cyan"
+                        radius="xl"
+                        style={{ fontSize: '1rem', fontWeight: 'bold' }}
+                      >
+                        Pool left
+                      </Badge>
+                      <Title size="h2" c="white">{' '}{unvotedCount}{' '}</Title>
+                      <Badge
+                        size="lg"
+                        color="teal"
+                        radius="xl"
+                        style={{ fontSize: '1rem', fontWeight: 'bold', marginLeft: '2rem' }}
+                      >
+                        Shortlist
+                      </Badge>
+                      <Title size="h2" c="white">{' '}{shortlistedCount}/10 </Title>
+                    </div>
+                    <div className={classes.content}>
+                      {/* Left Section - Poster */}
+                      <div>
+                        <Image
+                          src={posterUrl}
+                          alt={movieData.title}
+                          radius="lg"
+                          className={classes.poster} />
+                      </div>
+                      {/* Right Section - Details */}
+                      <div style={{ paddingLeft: '2rem' }}>
 
-                      {/* Title and year */}
-                      <Title order={1} fz="3.5rem" style={{ color: 'white' }}>
-                        {movieData.title}{' '}
-                        <Text component="span" fz="3rem" color="white">
-                          ({movieData.releaseDate?.substr(0, 4)})
+                        {/* Title and year */}
+                        <Title order={1} fz="3.5rem" style={{ color: 'white' }}>
+                          {movieData.title}{' '}
+                          <Text component="span" fz="3rem" color="white">
+                            ({movieData.releaseDate?.substr(0, 4)})
+                          </Text>
+                        </Title>
+                        {/* User Score and metadata*/}
+                        <Group mt="md" gap="sm">
+                          <Badge
+                            size="lg"
+                            color="green"
+                            radius="xl"
+                            style={{ fontSize: '1rem', fontWeight: 'bold' }}
+                          >
+                            {Math.round(movieData.voteAverage * 10)}%
+                          </Badge>
+                          <Text fz="1.1rem" color="white">
+                            {movieData.countries.join(', ')} • {movieData.genres.join(', ')} •{' '}
+                            {movieData.runtime} min
+                          </Text>
+                        </Group>
+
+                        {/* Overview */}
+                        <Text fw={700} size="xl" color="white" className={classes.tagline}>
+                          {movieData.tagline}
                         </Text>
-                      </Title>
-                      {/* User Score and metadata*/}
-                      <Group mt="md" gap="sm">
-                        <Badge
-                          size="lg"
-                          color="green"
-                          radius="xl"
-                          style={{ fontSize: '1rem', fontWeight: 'bold' }}
-                        >
-                          {Math.round(movieData.voteAverage * 10)}%
-                        </Badge>
-                        <Text fz="1.1rem" color="white">
-                        {movieData.countries.join(', ')} • {movieData.genres.join(', ')} •{' '}
-                        {movieData.runtime} min
-                      </Text>
-                      </Group>
+                        <Text fw={500} size="lg" color="white" lineClamp={7} className={classes.overview}>
+                          {movieData.overview}
+                        </Text>
 
-                      {/* Overview */}
-                      <Text fw={700} size="xl" color="white" className={classes.tagline}>
-                        {movieData.tagline}
-                      </Text>
-                      <Text fw={500} size="lg" color="white" lineClamp={7} className={classes.overview}>
-                        {movieData.overview}
-                      </Text>
-
-                      {/* Crew Information
-                  <Group mt="xl" gap="xl">
-                    <div>
-                      <Text size="lg" fw={700} color="white">
-                        {movie.director}
-                      </Text>
-                      <Text size="lg" color="white">
-                        Director
-                      </Text>
+                        {/* Crew Information
+                          <Group mt="xl" gap="xl">
+                            <div>
+                              <Text size="lg" fw={700} color="white">
+                                {movie.director}
+                              </Text>
+                              <Text size="lg" color="white">
+                                Director
+                              </Text>
+                            </div>
+                            <div>
+                              <Text size="md" fw={700} color="white">
+                                {movie.writer}
+                              </Text>
+                              <Text size="md" color="white">
+                                Novel
+                              </Text>
+                            </div>
+                            <div>
+                              <Text size="md" fw={700} color="white">
+                                {movie.screenplay}
+                              </Text>
+                              <Text size="md" color="white">
+                                Screenplay
+                              </Text>
+                            </div>
+                          </Group> */}
+                      </div>
                     </div>
-                    <div>
-                      <Text size="md" fw={700} color="white">
-                        {movie.writer}
-                      </Text>
-                      <Text size="md" color="white">
-                        Novel
-                      </Text>
-                    </div>
-                    <div>
-                      <Text size="md" fw={700} color="white">
-                        {movie.screenplay}
-                      </Text>
-                      <Text size="md" color="white">
-                        Screenplay
-                      </Text>
-                    </div>
-                  </Group> */}
+                    <Group className={classes.buttons} justify="center" gap="2rem">
+                      <Button
+                        className={classes.button}
+                        size="lg"
+                        radius="xl"
+                        variant="gradient"
+                        gradient={{ from: 'pink', to: 'yellow', deg: 60 }}
+                        onClick={addToLikeLocal}
+                      >
+                        Watched & Like
+                      </Button>
+                      <Button
+                        className={classes.button}
+                        size="lg"
+                        radius="xl"
+                        variant="gradient"
+                        gradient={{ from: 'cyan', to: 'green', deg: 60 }}
+                        onClick={addToShortlistLocal}
+                      >
+                        Add to Shortlist
+                      </Button>
+                      <Button
+                        className={classes.button}
+                        size="lg"
+                        radius="xl"
+                        variant="gradient"
+                        gradient={{ from: 'grey', to: 'dimmed', deg: 60 }}
+                        onClick={skipLocal}
+                      >
+                        Skip
+                      </Button>
+                      <Button
+                        className={classes.button}
+                        size="lg"
+                        radius="xl"
+                        variant="gradient"
+                        gradient={{ from: 'indigo', to: 'violet', deg: 60 }}
+                        onClick={open}
+                        disabled={shortlistStorage.getLength() === 0}
+                      >
+                        End Voting
+                      </Button>
+                    </Group>
                   </div>
                 </div>
-                <Group className={classes.buttons} justify="center" gap="2rem">
-                  <Button
-                    className={classes.button}
-                    size="lg"
-                    radius="xl"
-                    variant="gradient"
-                    gradient={{ from: 'pink', to: 'yellow', deg: 60 }}
-                    onClick={addToLikeLocal}
-                  >
-                    Watched & Like
-                  </Button>
-                  <Button
-                    className={classes.button}
-                    size="lg"
-                    radius="xl"
-                    variant="gradient"
-                    gradient={{ from: 'cyan', to: 'green', deg: 60 }}
-                    onClick={addToShortlistLocal}
-                  >
-                    Add to Shortlist
-                  </Button>
-                  <Button
-                    className={classes.button}
-                    size="lg"
-                    radius="xl"
-                    variant="gradient"
-                    gradient={{ from: 'grey', to: 'dimmed', deg: 60 }}
-                    onClick={skipLocal}
-                  >
-                    Skip
-                  </Button>
-                </Group>
               </div>
-            </div>
-          </div>
+            </>
           // {/* Decorative Images */}
           // {/* <Image src="/bg-1.png" className={classes.bottomLeftImage} />
           // <Image src="/bg-2.png" className={classes.bottomRightImage} /> */}

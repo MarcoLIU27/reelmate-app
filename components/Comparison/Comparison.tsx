@@ -2,7 +2,7 @@
 
 import { useEffect, useState } from 'react';
 import { useRouter } from 'next/navigation';
-import { Badge, Button, Group, Image, Loader, Paper, Text, Title } from '@mantine/core';
+import { Badge, Button, Flex, Group, Image, Loader, Paper, Stepper, Text, Title } from '@mantine/core';
 import classes from './Comparison.module.css';
 import { VoteCard } from '@/components/VoteCard/VoteCard';
 import shortlistStorage from '@/utils/shortlistStorage';
@@ -13,6 +13,7 @@ export function Comparison({ id }: { id: string }) {
   const [loadingText, setLoadingText] = useState<String>('Loading');
   const [shortlist, setShortlist] = useState<string[]>([]);
   const [currentPair, setCurrentPair] = useState<[string, string] | null>(null);
+  const [active, setActive] = useState(1);
 
   const router = useRouter();
 
@@ -77,6 +78,17 @@ export function Comparison({ id }: { id: string }) {
           currentPair && (
             <>
               <div className={classes.content}>
+                <Paper className={classes.progress}>
+                  <Flex className={classes.stepperWrapper} justify="center" align="center">
+                    {/* <Stepper classNames={classes} active={active} onStepClick={setActive}>
+                      <Stepper.Step description="10 -> 5" />
+                      <Stepper.Step description="5 -> 3" />
+                      <Stepper.Step description="3 -> 2" />
+                      <Stepper.Step description="2 -> 1" />
+                    </Stepper> */}
+                    <Title order={3}>Select the one you feel like watching more</Title>
+                  </Flex>
+                </Paper>
                 {/* Top Card */}
                 <div className={classes.leftCard} style={{ borderRight: 'solid', borderColor: 'white' }}>
                   <VoteCard

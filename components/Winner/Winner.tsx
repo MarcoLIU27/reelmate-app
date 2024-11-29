@@ -132,7 +132,7 @@ export function Winner({ id }: { id: string }) {
           >
             <div className={classes.glassEffect}>
               <div className={classes.innerContainer} style={{ backgroundImage: gradient }}>
-                  <Title size="3rem" c="white" mb="4rem" > Congrat! You have a great pick! </Title>
+                  <Title size="3rem" c="white" mb="4rem" > Congrats!🥳 You have a great pick! </Title>
                 <div className={classes.content}>
                   {/* Left Section - Poster */}
                   <div >
@@ -205,17 +205,29 @@ export function Winner({ id }: { id: string }) {
                     </div>
                   </Group> */}
                   </div>
-                </div>
-                <Button
-                  className={classes.button}
-                  size="lg"
-                  radius="xl"
-                  variant="gradient"
-                  gradient={{ from: 'pink', to: 'yellow', deg: 60 }}
-                  onClick={navigateToHome}
-                >
-                  Back To Home
-                </Button>
+                  </div>
+                <Group className={classes.buttons} justify="center" gap="2rem"> 
+                  <Button
+                    className={classes.button}
+                    size="lg"
+                    radius="xl"
+                    variant="gradient"
+                    gradient={{ from: 'cyan', to: 'green', deg: 60 }}
+                    onClick={() => window.open(`https://www.themoviedb.org/movie/${currentMovieId}`, '_blank')}
+                  >
+                    View on TMDB
+                  </Button>
+                  <Button
+                    className={classes.button}
+                    size="lg"
+                    radius="xl"
+                    variant="gradient"
+                    gradient={{ from: 'pink', to: 'yellow', deg: 60 }}
+                    onClick={navigateToHome}
+                  >
+                    Back To Home
+                  </Button>  
+                </Group>
               </div>
             </div>
           </div>
