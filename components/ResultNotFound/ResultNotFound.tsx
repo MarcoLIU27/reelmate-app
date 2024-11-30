@@ -6,7 +6,7 @@ import classes from './ResultNotFound.module.css';
 
 export function ResultNotFound() {
   const router = useRouter();
-  
+
   const navigateToHome = () => {
     router.push('/start');
   };

@@ -14,10 +14,10 @@ import {
   Text,
   Title,
 } from '@mantine/core';
-import classes from './Questions.module.css';
+import moviePoolHistoryStorage from '@/utils/moviePoolHistoryStorage';
 import moviePoolStorage from '@/utils/moviePoolStorage';
 import shortlistStorage from '@/utils/shortlistStorage';
-import moviePoolHistoryStorage from '@/utils/moviePoolHistoryStorage';
+import classes from './Questions.module.css';
 
 const genres = [
   { value: 'action', label: 'Action 🥊', id: '28' },
@@ -295,10 +295,10 @@ function Questions() {
   // };
 
   /**
-   * This function does not involve Movie Collection in our own DB. 
-   * No movie data is fetched from or saved to our DB. 
+   * This function does not involve Movie Collection in our own DB.
+   * No movie data is fetched from or saved to our DB.
    * All movie data are get from TMDB and cached in session storage.
-   * 
+   *
    * It performs the following steps:
    * 1. Search movies by user preferences.
    * 2. Create a new party in database, save preferences and movie pool.
@@ -330,21 +330,13 @@ function Questions() {
         ? today.toISOString().split('T')[0] // Format: YYYY-MM-DD
         : `${yearRange[1]}-12-31`; // End of the selected year
     const voteAverageGte = voteSelection === 'true' ? '7.0' : '0.0';
+    const round = 1;
+    cacheDataLocally('searchRound', round);
 
     // Step 1: Search movies by preferences
     setLoadingText('Searching by your preference...');
     // Cache preferences to local
     const localParams = {
-      with_genres: selectedGenresIds,
-      without_genres: selectedDislikedGenresIds,
-      with_original_language: selectedLanguages.join('|'),
-      'release_date.gte': releaseDateGte,
-      'release_date.lte': releaseDateLte,
-      'vote_average.gte': voteAverageGte,
-    };
-    cacheDataLocally("preferences", localParams);
-
-    const params = {
       ...default_search_params,
       with_genres: selectedGenresIds,
       without_genres: selectedDislikedGenresIds,
@@ -353,11 +345,17 @@ function Questions() {
       'release_date.lte': releaseDateLte,
       'vote_average.gte': voteAverageGte,
     };
+    cacheDataLocally('preferences', localParams);
+
+    const params = {
+      ...localParams,
+      page: Math.ceil(round / 2).toString(),
+    };
     const queryString = new URLSearchParams(params).toString();
     //console.log(queryString);
     const response = await fetch(`/api/search?${queryString}`);
     const result = await response.json();
-    //console.log(result);
+    console.log(result);
 
     // If no result found, redirect to /result-not-found
     if (result.total_results === 0) {

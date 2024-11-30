@@ -19,7 +19,7 @@ export async function updateMovieStatusInParty(
   try {
     // Construct the update query
     const updateQuery: any = {
-      $set: { 'moviePool.$.status': newStatus }
+      $set: { 'moviePool.$.status': newStatus },
     };
 
     // Add to shortlist if status is 'shortlisted'
@@ -29,14 +29,14 @@ export async function updateMovieStatusInParty(
 
     // Perform the update
     const updatedParty = await Party.findOneAndUpdate(
-      { 
-        _id: partyId, 
-        'moviePool.movieId': movieId 
+      {
+        _id: partyId,
+        'moviePool.movieId': movieId,
       },
       updateQuery,
-      { 
-        new: true,  // Return the updated document
-        runValidators: true  // Run model validations
+      {
+        new: true, // Return the updated document
+        runValidators: true, // Run model validations
       }
     );
 

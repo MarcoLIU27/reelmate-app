@@ -19,11 +19,11 @@ export async function GET(req: NextRequest) {
     const vote_average_gte = searchParams.get('vote_average.gte');
 
     // Construct query parameters for TMDB API
-    const queryParams = {
+    const queryParams: any = {
       include_adult,
       include_video,
       language,
-      page,
+      page: parseInt(page || '1', 10),
       sort_by,
       with_genres,
       without_genres,

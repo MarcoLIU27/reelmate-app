@@ -3,8 +3,8 @@ import '@mantine/notifications/styles.css';
 
 import React from 'react';
 import { ColorSchemeScript, MantineProvider } from '@mantine/core';
-import { theme } from '../theme';
 import { Notifications } from '@mantine/notifications';
+import { theme } from '../theme';
 
 export const metadata = {
   title: 'Mantine Next.js template',

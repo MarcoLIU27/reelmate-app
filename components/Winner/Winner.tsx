@@ -3,8 +3,8 @@
 import { useEffect, useState } from 'react';
 import { useRouter } from 'next/navigation';
 import { Badge, Button, Group, Image, Loader, Paper, Text, Title } from '@mantine/core';
-import classes from './Winner.module.css';
 import { calculateDominantColor } from '@/components/Questions/Questions';
+import classes from './Winner.module.css';
 
 const getCachedData = (key: string) => {
   const cached = sessionStorage.getItem(key);
@@ -77,12 +77,11 @@ export function Winner() {
   // Get winner movie ID
   useEffect(() => {
     setLoading(true);
-    const winnerId = getCachedData("winner");
+    const winnerId = getCachedData('winner');
     if (winnerId) {
       setCurrentMovieId(winnerId);
     }
   }, []);
-
 
   useEffect(() => {
     if (currentMovieId) {
@@ -142,10 +141,13 @@ export function Winner() {
           >
             <div className={classes.glassEffect}>
               <div className={classes.innerContainer} style={{ backgroundImage: gradient }}>
-                  <Title size="3rem" c="white" mb="4rem" > Congrats!🥳 You have a great pick! </Title>
+                <Title size="3rem" c="white" mb="4rem">
+                  {' '}
+                  Congrats!🥳 You have a great pick!{' '}
+                </Title>
                 <div className={classes.content}>
                   {/* Left Section - Poster */}
-                  <div >
+                  <div>
                     <Image
                       src={posterUrl}
                       alt={movieData.title}
@@ -155,39 +157,44 @@ export function Winner() {
                   </div>
                   {/* Right Section - Details */}
                   <div style={{ paddingLeft: '2rem' }}>
-
-                      {/* Title and year */}
-                      <Title order={1} fz="3.5rem" style={{ color: 'white' }}>
-                        {movieData.title}{' '}
-                        <Text component="span" fz="3rem" color="white">
-                          ({movieData.releaseDate?.substr(0, 4)})
-                        </Text>
-                      </Title>
-                      {/* User Score and metadata*/}
-                      <Group mt="md" gap="sm">
-                        <Badge
-                          size="lg"
-                          color="green"
-                          radius="xl"
-                          style={{ fontSize: '1rem', fontWeight: 'bold' }}
-                        >
-                          {Math.round(movieData.voteAverage * 10)}%
-                        </Badge>
-                        <Text fz="1.1rem" color="white">
+                    {/* Title and year */}
+                    <Title order={1} fz="3.5rem" style={{ color: 'white' }}>
+                      {movieData.title}{' '}
+                      <Text component="span" fz="3rem" color="white">
+                        ({movieData.releaseDate?.substr(0, 4)})
+                      </Text>
+                    </Title>
+                    {/* User Score and metadata*/}
+                    <Group mt="md" gap="sm">
+                      <Badge
+                        size="lg"
+                        color="green"
+                        radius="xl"
+                        style={{ fontSize: '1rem', fontWeight: 'bold' }}
+                      >
+                        {Math.round(movieData.voteAverage * 10)}%
+                      </Badge>
+                      <Text fz="1.1rem" color="white">
                         {movieData.countries.join(', ')} • {movieData.genres.join(', ')} •{' '}
                         {movieData.runtime} min
                       </Text>
-                      </Group>
+                    </Group>
 
-                      {/* Overview */}
-                      <Text fw={700} size="xl" color="white" className={classes.tagline}>
-                        {movieData.tagline}
-                      </Text>
-                      <Text fw={500} size="lg" color="white" lineClamp={7} className={classes.overview}>
-                        {movieData.overview}
-                      </Text>
+                    {/* Overview */}
+                    <Text fw={700} size="xl" color="white" className={classes.tagline}>
+                      {movieData.tagline}
+                    </Text>
+                    <Text
+                      fw={500}
+                      size="lg"
+                      color="white"
+                      lineClamp={7}
+                      className={classes.overview}
+                    >
+                      {movieData.overview}
+                    </Text>
 
-                      {/* Crew Information
+                    {/* Crew Information
                   <Group mt="xl" gap="xl">
                     <div>
                       <Text size="lg" fw={700} color="white">
@@ -215,15 +222,17 @@ export function Winner() {
                     </div>
                   </Group> */}
                   </div>
-                  </div>
-                <Group className={classes.buttons} justify="center" gap="2rem"> 
+                </div>
+                <Group className={classes.buttons} justify="center" gap="2rem">
                   <Button
                     className={classes.button}
                     size="lg"
                     radius="xl"
                     variant="gradient"
                     gradient={{ from: 'cyan', to: 'green', deg: 60 }}
-                    onClick={() => window.open(`https://www.themoviedb.org/movie/${currentMovieId}`, '_blank')}
+                    onClick={() =>
+                      window.open(`https://www.themoviedb.org/movie/${currentMovieId}`, '_blank')
+                    }
                   >
                     View on TMDB
                   </Button>
@@ -236,7 +245,7 @@ export function Winner() {
                     onClick={navigateToHome}
                   >
                     Back To Home
-                  </Button>  
+                  </Button>
                 </Group>
               </div>
             </div>

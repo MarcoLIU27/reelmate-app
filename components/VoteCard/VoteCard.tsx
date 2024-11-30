@@ -1,10 +1,10 @@
 'use client';
 
 import { useEffect, useState } from 'react';
-import { Badge, Button, Image, Loader, Paper, Text, Title, Popover } from '@mantine/core';
+import { Badge, Button, Image, Loader, Paper, Popover, Text, Title } from '@mantine/core';
 import classes from './VoteCard.module.css';
 
-export function VoteCard({ movieId, onVote }: {movieId: string, onVote: any}) {
+export function VoteCard({ movieId, onVote }: { movieId: string; onVote: any }) {
   const BASE_IMAGE_URL = 'https://image.tmdb.org/t/p';
 
   const [loading, setLoading] = useState(true);
@@ -43,7 +43,6 @@ export function VoteCard({ movieId, onVote }: {movieId: string, onVote: any}) {
   // const backdropUrl = `${BASE_IMAGE_URL}/w1280${movieData.backdropPath}`;
   // const posterUrl = `${BASE_IMAGE_URL}/w780${movieData.posterPath}`;
 
-
   useEffect(() => {
     setLoading(true);
     if (movieId) {
@@ -70,7 +69,7 @@ export function VoteCard({ movieId, onVote }: {movieId: string, onVote: any}) {
     }
   }, [movieData]);
 
-  return ( 
+  return (
     <>
       <Paper
         style={{
@@ -100,11 +99,7 @@ export function VoteCard({ movieId, onVote }: {movieId: string, onVote: any}) {
                 <div className={classes.content}>
                   {/* Left Section - Poster */}
                   <div className={classes.poster}>
-                    <Image
-                      src={posterUrl}
-                      alt={movieData.title}
-                      radius="lg"
-                    />
+                    <Image src={posterUrl} alt={movieData.title} radius="lg" />
                   </div>
                   {/* Right Section - Info */}
                   <div className={classes.details}>
@@ -133,22 +128,26 @@ export function VoteCard({ movieId, onVote }: {movieId: string, onVote: any}) {
                       {movieData.tagline}
                     </Text>
                     <Text fw={500} size="lg" mt="lg" color="white">
-                        {movieData.overview}
-                      </Text>
+                      {movieData.overview}
+                    </Text>
                   </div>
                 </div>
                 <div style={{ display: 'flex', gap: '2rem' }}>
                   <Popover position="top" shadow="md">
                     <Popover.Target>
-                      <Button className={classes.moreButton}
+                      <Button
+                        className={classes.moreButton}
                         radius="xl"
                         variant="light"
-                        color="pink">
+                        color="pink"
+                      >
                         More Info
                       </Button>
                     </Popover.Target>
                     <Popover.Dropdown>
-                      <Text size="xs">This is uncontrolled popover, it is opened when button is clicked</Text>
+                      <Text size="xs">
+                        This is uncontrolled popover, it is opened when button is clicked
+                      </Text>
                     </Popover.Dropdown>
                   </Popover>
                   <Button

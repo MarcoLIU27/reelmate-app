@@ -10,7 +10,7 @@ export default function HomePage() {
   return (
     <>
       <NavBar />
-      <Winner/>
+      <Winner />
       <Footer />
     </>
   );

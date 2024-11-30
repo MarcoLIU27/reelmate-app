@@ -20,23 +20,30 @@ export async function POST(req: NextRequest, props: { params: Promise<{ id: stri
 
     // Convert string filters to arrays for easier handling
     const withGenresArray = preferenceData.with_genres ? preferenceData.with_genres.split('|') : [];
-    const withoutGenresArray = preferenceData.without_genres ? preferenceData.without_genres.split(',') : [];
-    const withLanguagesArray = preferenceData.with_original_language ? preferenceData.with_original_language.split('|') : [];
+    const withoutGenresArray = preferenceData.without_genres
+      ? preferenceData.without_genres.split(',')
+      : [];
+    const withLanguagesArray = preferenceData.with_original_language
+      ? preferenceData.with_original_language.split('|')
+      : [];
 
     // Filter recommendations by user preferences
     const filteredRecommendations = recommendations
       .filter((movie: any) => {
         const movieGenres = movie.genre_ids || [];
         const matchesWithGenres =
-          withGenresArray.length === 0 || withGenresArray.some((genre: string) => movieGenres.includes(Number(genre)));
+          withGenresArray.length === 0 ||
+          withGenresArray.some((genre: string) => movieGenres.includes(Number(genre)));
         const matchesWithoutGenres =
-          withoutGenresArray.length === 0 || !withoutGenresArray.some((genre: string) => movieGenres.includes(Number(genre)));
+          withoutGenresArray.length === 0 ||
+          !withoutGenresArray.some((genre: string) => movieGenres.includes(Number(genre)));
         const matchesLanguage =
           withLanguagesArray.length === 0 || withLanguagesArray.includes(movie.original_language);
         const releaseDate = new Date(movie.release_date);
         const matchesReleaseDateGte = releaseDate >= new Date(preferenceData['release_date.gte']);
         const matchesReleaseDateLte = releaseDate <= new Date(preferenceData['release_date.lte']);
-        const matchesVoteAverage = movie.vote_average >= parseFloat(preferenceData['vote_average.gte']);
+        const matchesVoteAverage =
+          movie.vote_average >= parseFloat(preferenceData['vote_average.gte']);
         const notInPoolHistory = !poolHistory.includes(movie.id.toString());
 
         return (
@@ -53,9 +60,11 @@ export async function POST(req: NextRequest, props: { params: Promise<{ id: stri
       .slice(0, 3);
 
     // Return the filtered recommendations
-    return NextResponse.json({ recommendations: filteredRecommendations, numResults: filteredRecommendations.length });
+    return NextResponse.json({
+      recommendations: filteredRecommendations,
+      numResults: filteredRecommendations.length,
+    });
   } catch (error: any) {
     return NextResponse.json({ message: error.message }, { status: error.response?.status || 500 });
   }
 }
-

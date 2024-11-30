@@ -3,12 +3,11 @@
 import { useEffect, useState } from 'react';
 import { useRouter } from 'next/navigation';
 import { Flex, Loader, Paper, Text, Title } from '@mantine/core';
-import classes from './Comparison.module.css';
 import { VoteCard } from '@/components/VoteCard/VoteCard';
 import shortlistStorage from '@/utils/shortlistStorage';
+import classes from './Comparison.module.css';
 
 export function Comparison() {
-
   const [loading, _setLoading] = useState(false);
   const [loadingText, _setLoadingText] = useState<string>('Loading');
   const [shortlist, setShortlist] = useState<string[]>([]);
@@ -27,7 +26,7 @@ export function Comparison() {
     if (shortlist.length > 1) {
       setCurrentPair([shortlist[0], shortlist[1]]);
     } else if (shortlist.length === 1) {
-      cacheDataLocally("winner", shortlist[0]);
+      cacheDataLocally('winner', shortlist[0]);
       router.push('/winner');
     }
   }, [shortlist]);
@@ -86,16 +85,15 @@ export function Comparison() {
                   </Flex>
                 </Paper>
                 {/* Top Card */}
-                <div className={classes.leftCard} style={{ borderRight: 'solid', borderColor: 'white' }}>
-                  <VoteCard
-                    movieId={currentPair[0]}
-                    onVote={() => handleVote(currentPair[0])}
-                  />
+                <div
+                  className={classes.leftCard}
+                  style={{ borderRight: 'solid', borderColor: 'white' }}
+                >
+                  <VoteCard movieId={currentPair[0]} onVote={() => handleVote(currentPair[0])} />
                 </div>
                 {/* Bottom Card */}
                 <div className={classes.rightCard}>
-                  <VoteCard movieId={currentPair[1]} onVote={() => handleVote(currentPair[1])}
-                  />
+                  <VoteCard movieId={currentPair[1]} onVote={() => handleVote(currentPair[1])} />
                 </div>
               </div>
             </>
