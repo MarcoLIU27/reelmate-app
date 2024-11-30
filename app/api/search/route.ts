@@ -28,8 +28,8 @@ export async function GET(req: NextRequest) {
       with_genres,
       without_genres,
       with_original_language,
-      'release_date.gte': release_date_gte,
-      'release_date.lte': release_date_lte,
+      'primary_release_date.gte': release_date_gte,
+      'primary_release_date.lte': release_date_lte,
       'vote_average.gte': vote_average_gte,
     };
 
