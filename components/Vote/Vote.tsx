@@ -203,15 +203,22 @@ export function Vote() {
     const response = await fetch(`/api/search?${queryString}`);
     const result = await response.json();
     let moviePool: any = null;
+    const poolHistory = moviePoolHistoryStorage.getAll();
 
     if (half === 1) {
-      moviePool = result.results.slice(0, 10).map((movie: any) => ({
+      moviePool = result.results
+        .slice(0, 10)
+        .filter((movie: any) => !poolHistory.includes(movie.id.toString()))
+        .map((movie: any) => ({
         movieId: movie.id.toString(),
       }));
     } else {
-      moviePool = result.results.slice(10, 20).map((movie: any) => ({
-        movieId: movie.id.toString(),
-      }));
+      moviePool = result.results
+        .slice(10, 20)
+        .filter((movie: any) => !poolHistory.includes(movie.id.toString()))
+        .map((movie: any) => ({
+          movieId: movie.id.toString(),
+        }));
     }
 
     // If no more result found, popup and redirect to /shortlist
