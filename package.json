@@ -28,6 +28,8 @@
     "@tabler/icons-react": "^3.6.0",
     "axios": "^1.7.7",
     "colorthief": "^2.6.0",
+    "mongodb": "^6.11.0",
+    "mongoose": "^8.8.2",
     "jsdom": "^25.0.1",
     "next": "15.0.1",
     "react": "18.3.1",
