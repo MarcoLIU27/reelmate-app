@@ -15,23 +15,19 @@ const cacheDataLocally = (key: string, data: any) => {
   const dataToStore = JSON.stringify(data);
   if (sessionStorage.getItem(key) !== dataToStore) {
     sessionStorage.setItem(key, dataToStore);
-    console.log('Data cached');
-  } else {
-    console.log('Data already exists in cache');
   }
 };
 
 const getCachedData = (key: string) => {
   const cached = sessionStorage.getItem(key);
-  console.log('get cached data');
   return cached ? JSON.parse(cached) : null;
 };
 
-export function Vote({ id }: { id: string }) {
+export function Vote() {
   const BASE_IMAGE_URL = 'https://image.tmdb.org/t/p';
 
   const [loading, setLoading] = useState(true);
-  const [loadingText, setLoadingText] = useState<String>('Loading');
+  const [loadingText, setLoadingText] = useState<string>('Loading');
   // const [partyData, setPartyData] = useState<any>(null);
   const [partyDataUpdated, setPartyDataUpdated] = useState(false);
   const [unvotedCount, setUnvotedCount] = useState(-1);
@@ -45,68 +41,68 @@ export function Vote({ id }: { id: string }) {
   const [opened, { open, close }] = useDisclosure(false);
   const router = useRouter();
 
-  const addToLike = async () => {
-    setPartyDataUpdated(false);
-    // change unvoted to skip
-    try {
-      const modifyPoolStatusBody = JSON.stringify({
-        movieId: currentMovieId,
-        status: 'liked',
-      });
-      const response = await fetch(`/api/party/${id}`, {
-        method: 'PUT',
-        body: modifyPoolStatusBody,
-      });
-      if (!response.ok) {
-        throw new Error('Failed to modify party data');
-      }
-      const data = await response.json();
-    } catch (error) {
-      console.error('Error modify party data:', error);
-    }
-  };
+  // const addToLike = async () => {
+  //   setPartyDataUpdated(false);
+  //   // change unvoted to skip
+  //   try {
+  //     const modifyPoolStatusBody = JSON.stringify({
+  //       movieId: currentMovieId,
+  //       status: 'liked',
+  //     });
+  //     const response = await fetch(`/api/party/${id}`, {
+  //       method: 'PUT',
+  //       body: modifyPoolStatusBody,
+  //     });
+  //     if (!response.ok) {
+  //       throw new Error('Failed to modify party data');
+  //     }
+  //     const data = await response.json();
+  //   } catch (error) {
+  //     console.error('Error modify party data:', error);
+  //   }
+  // };
 
-  const addToShortlist = async () => {
-    setPartyDataUpdated(false);
-    // change unvoted to shortlisted, and add id to shortlist
-    try {
-      const modifyPoolStatusBody = JSON.stringify({
-        movieId: currentMovieId,
-        status: 'shortlisted',
-      });
-      const response = await fetch(`/api/party/${id}`, {
-        method: 'PUT',
-        body: modifyPoolStatusBody,
-      });
-      if (!response.ok) {
-        throw new Error('Failed to modify party data');
-      }
-      const data = await response.json();
-    } catch (error) {
-      console.error('Error modify party data:', error);
-    }
-  };
+  // const addToShortlist = async () => {
+  //   setPartyDataUpdated(false);
+  //   // change unvoted to shortlisted, and add id to shortlist
+  //   try {
+  //     const modifyPoolStatusBody = JSON.stringify({
+  //       movieId: currentMovieId,
+  //       status: 'shortlisted',
+  //     });
+  //     const response = await fetch(`/api/party/${id}`, {
+  //       method: 'PUT',
+  //       body: modifyPoolStatusBody,
+  //     });
+  //     if (!response.ok) {
+  //       throw new Error('Failed to modify party data');
+  //     }
+  //     const data = await response.json();
+  //   } catch (error) {
+  //     console.error('Error modify party data:', error);
+  //   }
+  // };
 
-  const skip = async () => {
-    setPartyDataUpdated(false);
-    // change unvoted to skip
-    try {
-      const modifyPoolStatusBody = JSON.stringify({
-        movieId: currentMovieId,
-        status: 'skipped',
-      });
-      const response = await fetch(`/api/party/${id}`, {
-        method: 'PUT',
-        body: modifyPoolStatusBody,
-      });
-      if (!response.ok) {
-        throw new Error('Failed to modify party data');
-      }
-      const data = await response.json();
-    } catch (error) {
-      console.error('Error modify party data:', error);
-    }
-  };
+  // const skip = async () => {
+  //   setPartyDataUpdated(false);
+  //   // change unvoted to skip
+  //   try {
+  //     const modifyPoolStatusBody = JSON.stringify({
+  //       movieId: currentMovieId,
+  //       status: 'skipped',
+  //     });
+  //     const response = await fetch(`/api/party/${id}`, {
+  //       method: 'PUT',
+  //       body: modifyPoolStatusBody,
+  //     });
+  //     if (!response.ok) {
+  //       throw new Error('Failed to modify party data');
+  //     }
+  //     const data = await response.json();
+  //   } catch (error) {
+  //     console.error('Error modify party data:', error);
+  //   }
+  // };
 
   const addToLikeLocal = async () => {
     // Remove from local pool
@@ -132,7 +128,7 @@ export function Vote({ id }: { id: string }) {
         throw new Error('Failed to get recommendations');
       }
       const recommendations = await response.json();
-      console.log("recommend:", recommendations);
+      //console.log("recommend:", recommendations);
       if (recommendations.numResults === 0) {
         // Popup: Not found
         notifications.show({
@@ -144,9 +140,9 @@ export function Vote({ id }: { id: string }) {
           position: 'top-center',
         });
       } else {
-        const recommendationIds = recommendations.recommendations.map((rec) => rec.id);
+        const recommendationIds = recommendations.recommendations.map((rec: { id: any; }) => rec.id);
         // Add new recommendations to movie pool
-        recommendationIds.forEach((id) => {
+        recommendationIds.forEach((id: { toString: () => string; }) => {
             moviePoolStorage.add(id.toString());
             moviePoolHistoryStorage.add(id.toString());
         });
@@ -163,7 +159,7 @@ export function Vote({ id }: { id: string }) {
       }
 
     } catch (error) {
-      console.error('Error get recommendations:', error);
+      // console.error('Error get recommendations:', error);
     }
 
     setPartyDataUpdated(false);
@@ -187,79 +183,69 @@ export function Vote({ id }: { id: string }) {
   const confirmNextStep = () => {
     close();
     // TODO: upload shortlist
-    router.push(`/shortlist/${id}`);
+    router.push('/shortlist');
   }
 
   // Fetch Party Data Function
-  const fetchPartyData = async () => {
-    try {
-      const response = await fetch(`/api/party/${id}`);
-      if (!response.ok) {
-        throw new Error('Failed to fetch party data');
-      }
-      const data = await response.json();
-      setPartyData(data);
-    } catch (error) {
-      console.error('Error fetching party data:', error);
-    }
-  };
+  // const fetchPartyData = async () => {
+  //   try {
+  //     const response = await fetch(`/api/party/${id}`);
+  //     if (!response.ok) {
+  //       throw new Error('Failed to fetch party data');
+  //     }
+  //     const data = await response.json();
+  //     setPartyData(data);
+  //   } catch (error) {
+  //     console.error('Error fetching party data:', error);
+  //   }
+  // };
 
   const fetchMovieData = async () => {
-    try {
-      console.log(currentMovieId);
-      // Try to get local cache first
-      const cachedData = getCachedData(currentMovieId!);
-      if (cachedData == null) {
-        const movieDetailsRes = await fetch(`/api/moviedetails/${currentMovieId}`);
-        if (!movieDetailsRes.ok) {
-          throw new Error(`Failed to fetch movie ${currentMovieId}`);
-        }
-        const movieDetails = await movieDetailsRes.json();
-
-        // Calculate dominantColor for backdrop image
-        const BASE_IMAGE_URL = 'https://image.tmdb.org/t/p';
-        const posterUrl = `${BASE_IMAGE_URL}/w780${movieDetails.details.poster_path}`;
-        const proxiedPosterUrl = `/api/proxy?url=${encodeURIComponent(posterUrl)}`;
-
-        let dominantColor: number[] | null = null;
-        try {
-          dominantColor = await calculateDominantColor(proxiedPosterUrl);
-          if (!dominantColor) {
-            console.error('No dominant color extracted.');
-          }
-        } catch (error) {
-          console.error('Error in dominant color processing:', error);
-          throw error;
-        }
-
-        // Cache to session storage
-        const createMovieBody = {
-          tmdbId: movieDetails.details.id.toString(),
-          title: movieDetails.details.title,
-          originalTitle: movieDetails.details.original_title,
-          genres: movieDetails.details.genres.map((genre: any) => genre.name),
-          language: movieDetails.details.original_language,
-          countries: movieDetails.details.origin_country,
-          overview: movieDetails.details.overview,
-          releaseDate: movieDetails.details.release_date,
-          runtime: movieDetails.details.runtime,
-          adult: movieDetails.details.adult,
-          tagline: movieDetails.details.tagline,
-          keywords: movieDetails.keywords.keywords.map((keyword: any) => keyword.name),
-          voteAverage: movieDetails.details.vote_average,
-          voteCount: movieDetails.details.vote_count,
-          popularity: movieDetails.details.popularity,
-          posterPath: movieDetails.details.poster_path,
-          backdropPath: movieDetails.details.backdrop_path,
-          dominantColor: dominantColor,
-        };
-        cacheDataLocally(currentMovieId!, createMovieBody);
-        setMovieData(createMovieBody);
-      } else {
-        setMovieData(cachedData);
+    // Try to get local cache first
+    const cachedData = getCachedData(currentMovieId!);
+    if (cachedData == null) {
+      const movieDetailsRes = await fetch(`/api/moviedetails/${currentMovieId}`);
+      if (!movieDetailsRes.ok) {
+        throw new Error(`Failed to fetch movie ${currentMovieId}`);
       }
-    } catch (error) {
-      console.error('Error fetching movie data:', error);
+      const movieDetails = await movieDetailsRes.json();
+
+      // Calculate dominantColor for backdrop image
+      const BASE_IMAGE_URL = 'https://image.tmdb.org/t/p';
+      const posterUrl = `${BASE_IMAGE_URL}/w780${movieDetails.details.poster_path}`;
+      const proxiedPosterUrl = `/api/proxy?url=${encodeURIComponent(posterUrl)}`;
+
+      let dominantColor: number[] | null = null;
+      dominantColor = await calculateDominantColor(proxiedPosterUrl);
+      if (!dominantColor) {
+        throw new Error('No dominant color extracted.');
+      }
+
+      // Cache to session storage
+      const createMovieBody = {
+        tmdbId: movieDetails.details.id.toString(),
+        title: movieDetails.details.title,
+        originalTitle: movieDetails.details.original_title,
+        genres: movieDetails.details.genres.map((genre: any) => genre.name),
+        language: movieDetails.details.original_language,
+        countries: movieDetails.details.origin_country,
+        overview: movieDetails.details.overview,
+        releaseDate: movieDetails.details.release_date,
+        runtime: movieDetails.details.runtime,
+        adult: movieDetails.details.adult,
+        tagline: movieDetails.details.tagline,
+        keywords: movieDetails.keywords.keywords.map((keyword: any) => keyword.name),
+        voteAverage: movieDetails.details.vote_average,
+        voteCount: movieDetails.details.vote_count,
+        popularity: movieDetails.details.popularity,
+        posterPath: movieDetails.details.poster_path,
+        backdropPath: movieDetails.details.backdrop_path,
+        dominantColor,
+      };
+      cacheDataLocally(currentMovieId!, createMovieBody);
+      setMovieData(createMovieBody);
+    } else {
+      setMovieData(cachedData);
     }
   };
 
@@ -268,7 +254,6 @@ export function Vote({ id }: { id: string }) {
     if (!partyDataUpdated) {
       setLoading(true);
       setLoadingText('Presenting the next movie...');
-      console.log('Fetching party data ...');
       // fetchPartyData();
       // Get from Session Storage:
       // TODO: If user open current link in a new session, movie pool storage will be cleared. Need to fetch full MoviePool from DB and store.
@@ -303,14 +288,14 @@ export function Vote({ id }: { id: string }) {
   useEffect(() => {
     if (unvotedCount === 0 || shortlistedCount === 10) {
       // TODO: Upload local shortlist to DB
-      router.push(`/shortlist/${id}`);
+      router.push('/shortlist');
     }
   }, [unvotedCount, shortlistedCount]);
 
   // Set the gradient dynamically when the dominant color is extracted
   useEffect(() => {
     if (movieData) {
-      console.log("data:", movieData);
+      // console.log("data:", movieData);
       // Extract the RGB values from the dominant color
       const [r, g, b] = movieData.dominantColor;
 

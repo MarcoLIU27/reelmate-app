@@ -11,12 +11,12 @@ export async function GET() {
 
     if (readyState === 1) {
       return NextResponse.json({ status: 'healthy', db: 'connected' }, { status: 200 });
-    } else {
-      return NextResponse.json(
-        { status: 'unhealthy', db: 'disconnected', debug: { readyState } },
-        { status: 500 }
-      );
-    }
+    } 
+    return NextResponse.json(
+      { status: 'unhealthy', db: 'disconnected', debug: { readyState } },
+      { status: 500 }
+    );
+
   } catch (error: any) {
     return NextResponse.json(
       { status: 'unhealthy', db: 'error', message: error.message },

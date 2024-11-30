@@ -42,12 +42,12 @@ export async function POST(req: NextRequest) {
       },
       moviePool: body.moviePool,
     });
-    console.log('New party created with ID:', partyId);
+    // console.log('New party created with ID:', partyId);
 
     // Return the created party ID
     return NextResponse.json({ partyId });
   } catch (error: any) {
-    console.error('Error creating party:', error);
+    // console.error('Error creating party:', error);
     return NextResponse.json({ message: error.message }, { status: 500 });
   }
 }

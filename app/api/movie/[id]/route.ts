@@ -4,7 +4,7 @@ import { getMovieByID } from '@/services/movieServices';
 
 // Movie endpoints: read, update, delete with ReelMates DB Movie Collection
 
-export async function GET(req: NextRequest, props: { params: Promise<{ id: string }> }) {
+export async function GET(_req: NextRequest, props: { params: Promise<{ id: string }> }) {
   const params = await props.params;
   await dbConnect();
 
@@ -21,7 +21,7 @@ export async function GET(req: NextRequest, props: { params: Promise<{ id: strin
     // Return the movie data
     return NextResponse.json(movie, { status: 200 });
   } catch (error: any) {
-    console.error('Error fetching movie:', error);
+    ///console.error('Error fetching movie:', error);
     return NextResponse.json(
       { message: 'Failed to fetch movie', error: error.message },
       { status: 500 }

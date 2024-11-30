@@ -8,15 +8,14 @@ import { calculateDominantColor } from '@/components/Questions/Questions';
 
 const getCachedData = (key: string) => {
   const cached = sessionStorage.getItem(key);
-  console.log('get cached data');
   return cached ? JSON.parse(cached) : null;
 };
 
-export function Winner({ id }: { id: string }) {
+export function Winner() {
   const BASE_IMAGE_URL = 'https://image.tmdb.org/t/p';
 
   const [loading, setLoading] = useState(true);
-  const [loadingText, setLoadingText] = useState<String>('Loading final pick...');
+  const [loadingText, _setLoadingText] = useState<string>('Loading final pick...');
   const [currentMovieId, setCurrentMovieId] = useState<string | null>(null);
   const [movieData, setMovieData] = useState<any>(null);
   const [posterUrl, setPosterUrl] = useState<string>('');
@@ -29,38 +28,49 @@ export function Winner({ id }: { id: string }) {
   };
 
   const fetchMovieData = async () => {
-    try {
-      console.log(currentMovieId);
-      // Try to get local cache first
-      const cachedData = getCachedData(currentMovieId!);
-      if (cachedData == null) {
-        const movieDetailsRes = await fetch(`/api/moviedetails/${currentMovieId}`);
-        if (!movieDetailsRes.ok) {
-          throw new Error(`Failed to fetch movie ${currentMovieId}`);
-        }
-        const movieDetails = await movieDetailsRes.json();
-
-        // Calculate dominantColor for backdrop image
-        const BASE_IMAGE_URL = 'https://image.tmdb.org/t/p';
-        const posterUrl = `${BASE_IMAGE_URL}/w780${movieDetails.details.poster_path}`;
-        const proxiedPosterUrl = `/api/proxy?url=${encodeURIComponent(posterUrl)}`;
-
-        let dominantColor: number[] | null = null;
-        try {
-          dominantColor = await calculateDominantColor(proxiedPosterUrl);
-          if (!dominantColor) {
-            console.error('No dominant color extracted.');
-          }
-        } catch (error) {
-          console.error('Error in dominant color processing:', error);
-          throw error;
-        }
-        setMovieData(createMovieBody);
-      } else {
-        setMovieData(cachedData);
+    // Try to get local cache first
+    const cachedData = getCachedData(currentMovieId!);
+    if (cachedData == null) {
+      const movieDetailsRes = await fetch(`/api/moviedetails/${currentMovieId}`);
+      if (!movieDetailsRes.ok) {
+        throw new Error(`Failed to fetch movie ${currentMovieId}`);
       }
-    } catch (error) {
-      console.error('Error fetching movie data:', error);
+      const movieDetails = await movieDetailsRes.json();
+
+      // Calculate dominantColor for backdrop image
+      const BASE_IMAGE_URL = 'https://image.tmdb.org/t/p';
+      const posterUrl = `${BASE_IMAGE_URL}/w780${movieDetails.details.poster_path}`;
+      const proxiedPosterUrl = `/api/proxy?url=${encodeURIComponent(posterUrl)}`;
+
+      let dominantColor: number[] | null = null;
+      dominantColor = await calculateDominantColor(proxiedPosterUrl);
+      if (!dominantColor) {
+        throw new Error('No dominant color extracted.');
+      }
+
+      const createMovieBody = {
+        tmdbId: movieDetails.details.id.toString(),
+        title: movieDetails.details.title,
+        originalTitle: movieDetails.details.original_title,
+        genres: movieDetails.details.genres.map((genre: any) => genre.name),
+        language: movieDetails.details.original_language,
+        countries: movieDetails.details.origin_country,
+        overview: movieDetails.details.overview,
+        releaseDate: movieDetails.details.release_date,
+        runtime: movieDetails.details.runtime,
+        adult: movieDetails.details.adult,
+        tagline: movieDetails.details.tagline,
+        keywords: movieDetails.keywords.keywords.map((keyword: any) => keyword.name),
+        voteAverage: movieDetails.details.vote_average,
+        voteCount: movieDetails.details.vote_count,
+        popularity: movieDetails.details.popularity,
+        posterPath: movieDetails.details.poster_path,
+        backdropPath: movieDetails.details.backdrop_path,
+        dominantColor,
+      };
+      setMovieData(createMovieBody);
+    } else {
+      setMovieData(cachedData);
     }
   };
 
@@ -83,7 +93,7 @@ export function Winner({ id }: { id: string }) {
   // Set the gradient dynamically when the dominant color is extracted
   useEffect(() => {
     if (movieData) {
-      console.log("data:", movieData);
+      // console.log("data:", movieData);
       // Extract the RGB values from the dominant color
       const [r, g, b] = movieData.dominantColor;
 

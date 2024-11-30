@@ -6,7 +6,7 @@
     width: 100%;
     height: 10vh;
     padding: 0 40px; /* Add padding for the content */
-    margin: 0 0 2vh 0;
+    margin: 0 0 2vh;
     border-radius: 0 0 2rem 2rem;
     background: rgba(255, 255, 255, 0.2); /* Semi-transparent white background */
     border: 1px solid rgba(255, 255, 255, 0.3); /* Subtle border */
@@ -35,7 +35,7 @@
 
 .link {
   text-decoration: none;
-  color: #ffffff; /* Dark gray text */
+  color: #fff; /* Dark gray text */
   font-size: 24px;
   font-weight: 500;
   transition: color 0.3s ease; /* Smooth hover transition */

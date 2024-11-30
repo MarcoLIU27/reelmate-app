@@ -2,7 +2,7 @@ import { NextRequest, NextResponse } from 'next/server';
 import TMDBClient from '@/app/clients/TMDBclient';
 
 // Fetch movie details and keywords from TMDB
-export async function GET(req: NextRequest, props: { params: Promise<{ id: string }> }) {
+export async function GET(_req: NextRequest, props: { params: Promise<{ id: string }> }) {
   const params = await props.params;
   const { id } = params; // Extract the movie ID from the parameters
 
@@ -16,10 +16,6 @@ export async function GET(req: NextRequest, props: { params: Promise<{ id: strin
     // Return the details and keywords
     return NextResponse.json({ details, keywords }, { status: 200 });
   } catch (error: any) {
-    // Log the error for debugging
-    console.error('Error fetching TMDB data:', error.message);
-
-    // Handle TMDB-specific errors gracefully
     return NextResponse.json(
       {
         message: error.response?.data?.status_message || 'Failed to fetch movie details from TMDB',

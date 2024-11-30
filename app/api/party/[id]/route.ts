@@ -2,7 +2,7 @@ import { NextRequest, NextResponse } from 'next/server';
 import dbConnect from '@/app/clients/mongodb';
 import { getPartyByID, updateMovieStatusInParty } from '@/services/partyServices';
 
-export async function GET(req: NextRequest, props: { params: Promise<{ id: string }> }) {
+export async function GET(_req: NextRequest, props: { params: Promise<{ id: string }> }) {
   const params = await props.params;
   await dbConnect();
 
@@ -37,7 +37,7 @@ export async function GET(req: NextRequest, props: { params: Promise<{ id: strin
       firstUnvotedMovieId,
     });
   } catch (error: any) {
-    console.error('Error retrieving party data:', error);
+    //console.error('Error retrieving party data:', error);
     return NextResponse.json({ message: error.message }, { status: error.response?.status || 500 });
   }
 }
@@ -66,7 +66,7 @@ export async function PUT(req: NextRequest, props: { params: Promise<{ id: strin
 
     return NextResponse.json({ message: 'Movie status updated successfully' });
   } catch (error: any) {
-    console.error('Error updating movie status:', error);
+    //console.error('Error updating movie status:', error);
     return NextResponse.json({ message: error.message }, { status: error.response?.status || 500 });
   }
 }

@@ -61,12 +61,12 @@ export async function POST(req: NextRequest) {
       createdAt: new Date(),
       expiresAt: body.expiresAt || new Date(Date.now() + 3 * 24 * 60 * 60 * 1000), // Default expiry: 3 days
     });
-    console.log('New movie created with ID:', movieId);
+    //console.log('New movie created with ID:', movieId);
 
     // Return the created movie ID
     return NextResponse.json({ movieId });
   } catch (error: any) {
-    console.error('Error creating party:', error);
+    //console.error('Error creating party:', error);
     return NextResponse.json({ message: error.message }, { status: 500 });
   }
 }

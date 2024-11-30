@@ -10,7 +10,7 @@ export default function HomePage() {
   return (
     <>
       <NavBar />
-      <Comparison id={id} />
+      <Comparison/>
       <Footer />
     </>
   );

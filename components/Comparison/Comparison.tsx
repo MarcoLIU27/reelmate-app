@@ -2,18 +2,17 @@
 
 import { useEffect, useState } from 'react';
 import { useRouter } from 'next/navigation';
-import { Badge, Button, Flex, Group, Image, Loader, Paper, Stepper, Text, Title } from '@mantine/core';
+import { Flex, Loader, Paper, Text, Title } from '@mantine/core';
 import classes from './Comparison.module.css';
 import { VoteCard } from '@/components/VoteCard/VoteCard';
 import shortlistStorage from '@/utils/shortlistStorage';
 
-export function Comparison({ id }: { id: string }) {
+export function Comparison() {
 
-  const [loading, setLoading] = useState(false);
-  const [loadingText, setLoadingText] = useState<String>('Loading');
+  const [loading, _setLoading] = useState(false);
+  const [loadingText, _setLoadingText] = useState<string>('Loading');
   const [shortlist, setShortlist] = useState<string[]>([]);
   const [currentPair, setCurrentPair] = useState<[string, string] | null>(null);
-  const [active, setActive] = useState(1);
 
   const router = useRouter();
 
@@ -21,9 +20,6 @@ export function Comparison({ id }: { id: string }) {
     const dataToStore = JSON.stringify(data);
     if (sessionStorage.getItem(key) !== dataToStore) {
       sessionStorage.setItem(key, dataToStore);
-      console.log('Data cached');
-    } else {
-      console.log('Data already exists in cache');
     }
   };
 
@@ -32,7 +28,7 @@ export function Comparison({ id }: { id: string }) {
       setCurrentPair([shortlist[0], shortlist[1]]);
     } else if (shortlist.length === 1) {
       cacheDataLocally("winner", shortlist[0]);
-      router.push(`/winner/${id}`);
+      router.push('/winner');
     }
   }, [shortlist]);
 

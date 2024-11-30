@@ -1,8 +1,7 @@
 'use client';
 
 import { useEffect, useState } from 'react';
-import { useRouter } from 'next/navigation';
-import { Badge, Button, Group, Image, Loader, Paper, Text, Title, Popover } from '@mantine/core';
+import { Badge, Button, Image, Loader, Paper, Text, Title, Popover } from '@mantine/core';
 import classes from './VoteCard.module.css';
 
 export function VoteCard({ movieId, onVote }: {movieId: string, onVote: any}) {
@@ -16,7 +15,6 @@ export function VoteCard({ movieId, onVote }: {movieId: string, onVote: any}) {
 
   const getCachedData = (key: string) => {
     const cached = sessionStorage.getItem(key);
-    console.log('get cached data');
     return cached ? JSON.parse(cached) : null;
   };
 
@@ -49,7 +47,6 @@ export function VoteCard({ movieId, onVote }: {movieId: string, onVote: any}) {
   useEffect(() => {
     setLoading(true);
     if (movieId) {
-      console.log(movieId)
       const cachedData = getCachedData(movieId!);
       setMovieData(cachedData);
     }
@@ -57,7 +54,6 @@ export function VoteCard({ movieId, onVote }: {movieId: string, onVote: any}) {
 
   useEffect(() => {
     if (movieData) {
-      console.log(movieData);
       // Extract the RGB values from the dominant color
       const [r, g, b] = movieData.dominantColor;
       const gradient = `linear-gradient(

@@ -1,8 +1,7 @@
 'use client';
 
 import { useRouter } from 'next/navigation';
-import { IconCircleCheck } from '@tabler/icons-react';
-import { Button, Grid, Image, List, Paper, rem, Text, ThemeIcon, Title } from '@mantine/core';
+import { Button, Image, Paper, Text, Title } from '@mantine/core';
 import classes from './ResultNotFound.module.css';
 
 export function ResultNotFound() {
@@ -37,7 +36,7 @@ export function ResultNotFound() {
           radius="lg"
           variant="gradient"
           gradient={{ from: 'pink', to: 'yellow', deg: 60 }}
-          onClick={navigateToQuestions}
+          onClick={navigateToHome}
         >
           Back to Home Page
         </Button>

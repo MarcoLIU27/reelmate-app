@@ -1,14 +1,11 @@
 import { NextRequest, NextResponse } from 'next/server';
-import dbConnect from '@/app/clients/mongodb';
 import TMDBClient from '@/app/clients/TMDBclient';
 
 export async function POST(req: NextRequest, props: { params: Promise<{ id: string }> }) {
   const params = await props.params;
-  await dbConnect();
 
   const { id } = params;
   const body = await req.json();
-  console.log(body);
   const { preferenceData, poolHistory } = body;
 
   try {
